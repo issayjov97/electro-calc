@@ -1,0 +1,7 @@
+:host([theme="test"]) [part="input-field"] {
+    border-radius: 4px;
+    background-color: white;
+}
+
+vaadin-text-field{
+}

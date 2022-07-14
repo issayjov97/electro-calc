@@ -1,0 +1,7 @@
+[part="navbar"]{
+    backdrop-filter: none;
+}
+
+[part="drawer"]{
+    background-color: rgba(0, 0, 0, .6);
+}

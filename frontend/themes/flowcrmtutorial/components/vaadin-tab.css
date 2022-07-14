@@ -1,0 +1,7 @@
+:host([selected]):before, :host([selected]):after {
+    background-color: #409515;
+}
+
+:host([selected]) {
+    background-color: rgba(0, 0, 0, .75);
+}

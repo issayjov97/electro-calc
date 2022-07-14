@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://ec2-54-228-218-84.eu-west-1.compute.amazonaws.com:5432/dcb5fv364bfb9p
+    username: xndorogfqxsfbq
+    password: a7643960139e0495c837ea4970456e83c53982211a76dada8fba56fab3360e34
+  jpa:
+    properties:
+      hibernate.format_sql: true
+logging:
+  level:
+    org:
+      springframework:
+        web:

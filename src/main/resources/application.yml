@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: crm
+  datasource:
+    url:
+    username:
+    password:
+    hikari:
+      maximum-pool-size: 3
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+  jackson:
+    default-property-inclusion: NON_EMPTY
+    visibility:
+      FIELD: any
+
+  liquibase:
+    change-log: classpath:/db/migration/changelog-master.yml
+logging:
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){blue} %clr(%-5p) %clr(${PID}){faint} %clr(---){faint} %clr([%8.15t]){cyan} %clr(%-40.40logger{0}){blue} %clr(:){red} %X{traceId}%clr(%m){faint}%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p ${PID} --- [%8.15t] %-40.40logger{0} : %X{traceId}%m%n"
+
+vaadin:
+  productionMode: false
+  compatibilityMode: true
+server:
+  port: ${PORT:8080}

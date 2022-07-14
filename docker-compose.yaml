@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=addai
+      - POSTGRES_PASSWORD=addai
+      - POSTGRES_DB=addai
+    volumes:
+      - ~/.cache/addai/data/postgres:/var/lib/postgresql/data
+    ports:
+      - "15432:5432"
+
+  crm:
+    image: vaadin-crm:0.0.1
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/addai??currentSchema=crm"
+      SPRING_DATASOURCE_USERNAME: upce
+      SPRING_DATASOURCE_PASSWORD: a
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8083:8080"
+    depends_on:
+      - db
