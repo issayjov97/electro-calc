@@ -1,8 +1,7 @@
 package com.example.application.ui.views.settings;
 
-import com.example.application.service.PatternService;
-import com.example.application.service.UserService;
 import com.example.application.ui.views.MainView;
+import com.example.application.ui.views.admin.FirmsView;
 import com.example.application.ui.views.admin.UsersView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Span;
@@ -20,16 +19,13 @@ import com.vaadin.flow.router.RouterLayout;
 @ParentLayout(MainView.class)
 @Route(value = "settings", layout = MainView.class)
 public class SettingsView extends VerticalLayout implements RouterLayout {
-    private final PatternService patternService;
-    private final UserService    userService;
-    private       Tab            profile;
-    private       Tab            accountSecurity;
-    private       Tab            roles;
-    private       Tab            users;
+    private final Tab profile;
+    private final Tab accountSecurity;
+    private final Tab roles;
+    private final Tab users;
+    private final Tab firms;
 
-    public SettingsView(PatternService patternService, UserService userService) {
-        this.patternService = patternService;
-        this.userService = userService;
+    public SettingsView() {
         profile = new Tab(
                 VaadinIcon.USER.create(),
                 new Span("Personal Info")
@@ -42,18 +38,21 @@ public class SettingsView extends VerticalLayout implements RouterLayout {
                 VaadinIcon.USER_CHECK.create(),
                 new Span("Roles")
         );
-
         users = new Tab(
                 VaadinIcon.USER.create(),
                 new Span("Users")
         );
 
-        Tabs tabs = new Tabs(profile, accountSecurity, roles, users);
+        firms = new Tab(
+                VaadinIcon.BOAT.create(),
+                new Span("Firms")
+        );
 
-        for (Tab tab : new Tab[]{profile, accountSecurity, roles, users}) {
+        Tabs tabs = new Tabs(profile, accountSecurity, roles, users, firms);
+
+        for (Tab tab : new Tab[]{profile, accountSecurity, roles, users, firms}) {
             tab.addThemeVariants(TabVariant.LUMO_ICON_ON_TOP);
         }
-
         tabs.addSelectedChangeListener(e -> {
             setContent(tabs.getSelectedTab());
         });
@@ -70,6 +69,8 @@ public class SettingsView extends VerticalLayout implements RouterLayout {
             UI.getCurrent().navigate(AccountSecurityView.class);
         else if (tab.equals(users))
             UI.getCurrent().navigate(UsersView.class);
+        else if (tab.equals(firms))
+            UI.getCurrent().navigate(FirmsView.class);
         else
             UI.getCurrent().navigate(ProfileView.class);
     }

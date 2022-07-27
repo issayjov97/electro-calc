@@ -1,6 +1,6 @@
 package com.example.application.ui.views.settings;
 
-import com.example.application.dto.UserDTO;
+import com.example.application.persistence.entity.UserEntity;
 import com.example.application.service.UserService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
@@ -28,7 +28,7 @@ public class AccountSecurityView extends Div {
 
     private VerticalLayout getAccountSecurityContent() {
         final VerticalLayout settingsContent = new VerticalLayout();
-        final Binder<UserDTO> binder = new BeanValidationBinder<>(UserDTO.class);
+        final Binder<UserEntity> binder = new BeanValidationBinder<>(UserEntity.class);
         PasswordField password = new PasswordField("New password");
         PasswordField confirmPassword = new PasswordField("Confirm new password");
         Button saveButton = new Button("Confirm");
@@ -38,14 +38,14 @@ public class AccountSecurityView extends Div {
                         v -> v.length() >= 8,
                         "Password must contain at least 8 characters "
                 )
-                .bind(UserDTO::getPassword, UserDTO::setPassword);
+                .bind(UserEntity::getPassword, UserEntity::setPassword);
 
         saveButton.addClickListener(e -> {
-            UserDTO userDTO = new UserDTO();
-            userDTO.setPassword(password.getValue());
+            UserEntity userEntity = new UserEntity();
+            userEntity.setPassword(password.getValue());
             try {
-                binder.writeBean(userDTO);
-                userService.updateUser(userDTO);
+                binder.writeBean(userEntity);
+                userService.save(userEntity);
                 var notification = Notification.show("Password was changed");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);

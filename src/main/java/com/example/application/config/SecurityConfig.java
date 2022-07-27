@@ -17,12 +17,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
     private static final String LOGIN_PROCESSING_URL = "/login";
     private static final String LOGIN_FAILURE_URL    = "/login?error";
     private static final String LOGIN_URL            = "/login";
     private static final String LOGOUT_SUCCESS_URL   = "/login";
-
     private final CustomUserDetailsService userDetailsService;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService) {
@@ -43,7 +41,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // Restrict access to our application.
                 .and().authorizeRequests()
 
-//                .antMatchers("/**").hasRole(Authority.ADMIN.name())
                 // Allow all Vaadin internal requests.
                 .requestMatchers(SecurityUtils::isFrameworkInternalRequest).permitAll()
 
@@ -70,17 +67,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public CustomRequestCache customRequestCache() {
         return new CustomRequestCache();
     }
-
-//  @Bean
-//  @Override
-//  public UserDetailsService userDetailsService() {
-//    UserDetails user = User.withUsername("user")
-//            .password("{noop}userpass")
-//            .roles("USER", "Admin")
-//            .build();
-//
-//    return new InMemoryUserDetailsManager(user);
-//  }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {

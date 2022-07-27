@@ -1,6 +1,5 @@
 package com.example.application.ui.views.settings;
 
-import com.example.application.dto.UserDTO;
 import com.example.application.persistence.entity.UserEntity;
 import com.example.application.service.AuthService;
 import com.example.application.service.UserService;
@@ -32,7 +31,7 @@ public class ProfileView extends Div {
 
     private VerticalLayout getProfileContent() {
         final VerticalLayout settingsContent = new VerticalLayout();
-        final Binder<UserDTO> binder = new BeanValidationBinder<>(UserDTO.class);
+        final Binder<UserEntity> binder = new BeanValidationBinder<>(UserEntity.class);
         final UserEntity userEntity = userService.getByUsername(AuthService.getUsername());
         TextField firstName = new TextField("First name");
         firstName.setValue(userEntity.getFirstName());
@@ -53,38 +52,38 @@ public class ProfileView extends Div {
                         v -> v.length() >= 2,
                         "Min 2 characters"
                 )
-                .bind(UserDTO::getFirstName, UserDTO::setFirstName);
+                .bind(UserEntity::getFirstName, UserEntity::setFirstName);
 
         binder.forField(lastName)
                 .withValidator(
                         v -> v.length() >= 2,
                         "Min 2 characters"
                 )
-                .bind(UserDTO::getLastName, UserDTO::setLastName);
+                .bind(UserEntity::getLastName, UserEntity::setLastName);
 
         binder.forField(username)
                 .withValidator(
                         v -> v.length() >= 6,
                         "Min 6 characters"
                 )
-                .bind(UserDTO::getUsername, UserDTO::setUsername);
+                .bind(UserEntity::getUsername, UserEntity::setUsername);
 
         var emailValidator = new EmailValidator("");
         binder.forField(email)
                 .withValidator(
                         v -> !emailValidator.apply(v, null).isError(),
                         "This doesn't look like a valid email address")
-                .bind(UserDTO::getEmail, UserDTO::setEmail);
+                .bind(UserEntity::getEmail, UserEntity::setEmail);
 
         saveButton.addClickListener(e -> {
-            UserDTO userDTO = new UserDTO();
-            userDTO.setFirstName(firstName.getValue());
-            userDTO.setLastName(lastName.getValue());
-            userDTO.setUsername(username.getValue());
-            userDTO.setEmail(email.getValue());
+            UserEntity user = new UserEntity();
+            user.setFirstName(firstName.getValue());
+            user.setLastName(lastName.getValue());
+            user.setUsername(username.getValue());
+            user.setEmail(email.getValue());
             try {
-                binder.writeBean(userDTO);
-                userService.updateUser(userDTO);
+                binder.writeBean(user);
+                userService.save(user);
                 var notification = Notification.show("Personal info were updated");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);

@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=public
+    username: addai
+    password: addai
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop

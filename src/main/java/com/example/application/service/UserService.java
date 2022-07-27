@@ -1,121 +1,94 @@
 package com.example.application.service;
 
-import com.example.application.dto.UserDTO;
-import com.example.application.mapper.UserMapper;
-import com.example.application.persistence.entity.AuthorityEntity;
+import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.persistence.entity.UserEntity;
-import com.example.application.persistence.repository.AuthorityRepository;
 import com.example.application.persistence.repository.UserRepository;
+import com.example.application.predicate.UserPredicate;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @Service
-public class UserService {
-
-    private final UserRepository      userRepository;
-    private final PasswordEncoder     passwordEncoder;
-    private final AuthorityRepository authorityRepository;
+public class UserService implements CrudService<UserEntity> {
+    private final UserRepository  userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserService(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            AuthorityRepository authorityRepository
+            PasswordEncoder passwordEncoder
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.authorityRepository = authorityRepository;
+    }
+
+    @Override
+    public JpaRepository<UserEntity, Long> getRepository() {
+        return userRepository;
     }
 
     @Transactional
-    public void save(UserDTO userDTO) {
-        final UserEntity userEntity = userRepository.findById(userDTO.getId())
-                .orElse(new UserEntity());
+    @Override
+    public UserEntity save(UserEntity userEntity) {
         userEntity.setCreatedAt(LocalDateTime.now());
-        userEntity.setUsername(userDTO.getUsername());
-        userEntity.setFirstName(userDTO.getFirstName());
-        userEntity.setLastName(userDTO.getLastName());
-        userEntity.setEmail(userDTO.getEmail());
-        userEntity.setEnabled(userDTO.getEnabled());
-        // TODO: if no authorities
-        if (!userDTO.getAuthorities().isEmpty()) {
-            var userAuthorities = authorityRepository.findByNameIn(userDTO.getAuthorities());
-            userEntity.setAuthorityEntities(userAuthorities);
-        }
-        if (userEntity.getPassword() == null)
-            userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        userRepository.save(userEntity);
+        if (userEntity.getId() == null)
+            userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+        return CrudService.super.save(userEntity);
     }
 
-    @Transactional
-    public void saveUserEntity(UserEntity userEntity) {
-        userRepository.saveAndFlush(userEntity);
+    @Override
+    public void delete(UserEntity entity) {
+        CrudService.super.delete(entity);
     }
 
-    public List<UserDTO> getAll() {
-        return userRepository.findAll().stream().map(UserMapper::convertToDTO)
-                .collect(Collectors.toList());
+    @Override
+    public void deleteById(long id) {
+        CrudService.super.deleteById(id);
     }
 
-    public List<AuthorityEntity> getAuthorities() {
-        return authorityRepository.findAll();
+    @Override
+    public long count() {
+        return CrudService.super.count();
     }
 
-
-    public List<String> getMappedAuthorities() {
-        return authorityRepository.findAll().stream().map(AuthorityEntity::getName).collect(Collectors.toList());
+    @Override
+    public UserEntity load(long id) {
+        return CrudService.super.load(id);
     }
 
-
-    public void addAuthority(AuthorityEntity authorityEntity) {
-        authorityRepository.save(authorityEntity);
+    @Transactional(readOnly = true)
+    @Override
+    public List<UserEntity> loadAll() {
+        return CrudService.super.loadAll();
     }
 
-    public void deleteAuthority(Long id) {
-        authorityRepository.deleteById(id);
-    }
-
-
+    @Transactional(readOnly = true)
     public UserEntity getByUsername(String username) {
         return userRepository.findByUsername(username).orElseThrow(() -> {
             throw new RuntimeException("User not found");
         });
     }
 
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
-    }
-
-    @Transactional
-    public void updateUser(UserDTO userDTO) {
-        UserEntity user = userRepository.findByUsername(AuthService.getUsername()).orElseThrow(() -> {
+    @Transactional(readOnly = true)
+    public FirmEntity getUserFirm() {
+        var user = userRepository.findByUsername(AuthService.getUsername()).orElseThrow(() -> {
             throw new RuntimeException("User not found");
         });
-
-        if (userDTO.getFirstName() != null && !userDTO.getFirstName().isBlank())
-            user.setFirstName(userDTO.getFirstName());
-
-        if (userDTO.getLastName() != null && !userDTO.getLastName().isBlank())
-            user.setLastName(userDTO.getLastName());
-
-        if (userDTO.getEmail() != null && !userDTO.getEmail().isBlank())
-            user.setEmail(userDTO.getEmail());
-
-        if (userDTO.getUsername() != null && !userDTO.getUsername().isBlank())
-            user.setUsername(userDTO.getUsername());
-
-        if (userDTO.getPassword() != null && !userDTO.getPassword().isBlank())
-            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-
-        userRepository.save(user);
+        return user.getFirmEntity();
     }
 
-    public void deletePattern(UserDTO userDTO) {
-        userRepository.deleteById(userDTO.getId());
+    public Set<UserEntity> filter(String username, String email) {
+        List<UserEntity> result = loadAll();
+        if (username != null && !username.isBlank()) {
+            UserPredicate.withUsername(username);
+        }
+        if (email != null && !email.isBlank()) {
+            UserPredicate.withEmail(email);
+        }
+        return UserPredicate.filterUsers(result);
     }
-
 }

@@ -1,0 +1,17 @@
+.vaadin-menu-bar {
+    background-color: #409515;
+}
+
+:host [part="menu-bar-button"] {
+    border-radius: 4px;
+}
+
+[part="button"] {
+
+}
+
+:host([theme="menu-button"]) [part="menu-bar-button"] {
+    border-radius: 4px;
+    background-color: #409515;
+
+}

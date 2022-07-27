@@ -1,28 +1,23 @@
 package com.example.application.persistence.entity;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import java.util.List;
 import java.util.Set;
 
 @Entity
 @Table(name = "customers")
-public class CustomerEntity {
+public class CustomerEntity extends AbstractEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
     private String name;
     private String email;
     private String phone;
+
+    @ManyToOne
+    private FirmEntity firmEntity;
 
     @OneToMany(
             mappedBy = "customerEntity",
@@ -32,19 +27,28 @@ public class CustomerEntity {
     )
     private Set<OrderEntity> orders;
 
-    @ManyToOne
-    private UserEntity userEntity;
+    @OneToMany(
+            mappedBy = "customerEntity",
+            orphanRemoval = true,
+            cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER
+    )
+    private Set<OfferEntity> offers;
 
-    public UserEntity getUserEntity() {
-        return userEntity;
+    @OneToMany(
+            mappedBy = "customerEntity",
+            orphanRemoval = true,
+            cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER
+    )
+    private Set<DemandEntity> demands;
+
+    public FirmEntity getFirmEntity() {
+        return firmEntity;
     }
 
-    public void setUserEntity(UserEntity userEntity) {
-        this.userEntity = userEntity;
-    }
-
-    public Long getId() {
-        return id;
+    public void setFirmEntity(FirmEntity firmEntity) {
+        this.firmEntity = firmEntity;
     }
 
     public String getName() {
@@ -57,10 +61,6 @@ public class CustomerEntity {
 
     public String getPhone() {
         return phone;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public void setName(String name) {
@@ -81,5 +81,21 @@ public class CustomerEntity {
 
     public void setOrders(Set<OrderEntity> orders) {
         this.orders = orders;
+    }
+
+    public Set<OfferEntity> getOffers() {
+        return offers;
+    }
+
+    public void setOffers(Set<OfferEntity> offers) {
+        this.offers = offers;
+    }
+
+    public Set<DemandEntity> getDemands() {
+        return demands;
+    }
+
+    public void setDemands(Set<DemandEntity> demands) {
+        this.demands = demands;
     }
 }

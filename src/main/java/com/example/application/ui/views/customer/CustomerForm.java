@@ -1,11 +1,11 @@
 package com.example.application.ui.views.customer;
 
-import com.example.application.dto.CustomerDTO;
+import com.example.application.persistence.entity.CustomerEntity;
+import com.example.application.ui.views.AbstractForm;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -13,24 +13,17 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
-import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.validator.EmailValidator;
 import com.vaadin.flow.shared.Registration;
 
-public class CustomerForm extends Div {
-    Binder<CustomerDTO> binder = new BeanValidationBinder<>(CustomerDTO.class);
-    private final Dialog    dialog    = new Dialog();
-    private       TextField nameField  = new TextField("Name");
-    private       TextArea  emailField = new TextArea("Email");
-    private       TextField phoneField = new TextField("Phone");
-    private       Button    saveButton = new Button("Save");
-    private       Button      deleteButton = new Button("Delete");
-    private       Button      cancelButton = new Button("Cancel");
-    H2 headline = new H2();
-    private CustomerDTO customerDTO;
+public class CustomerForm extends AbstractForm<CustomerEntity> {
+    private final TextField      nameField    = new TextField("Name");
+    private final TextArea       emailField   = new TextArea("Email");
+    private final TextField      phoneField   = new TextField("Phone");
 
     public CustomerForm() {
+        super(new BeanValidationBinder<>(CustomerEntity.class));
         setBinder();
         dialog.getElement().setAttribute("aria-label", "Add new customer");
         dialog.add(createDialogLayout());
@@ -39,24 +32,27 @@ public class CustomerForm extends Div {
         phoneField.setSizeFull();
     }
 
-    private void setBinder() {
+    @Override
+    protected void setBinder() {
         binder.forField(nameField).asRequired("Name is required")
                 .withValidator(
                         name -> name.length() >= 3,
                         "Name must contain at least 3 characters "
                 )
-                .bind(CustomerDTO::getName, CustomerDTO::setName);
+                .bind(CustomerEntity::getName, CustomerEntity::setName);
 
         binder.forField(emailField).asRequired("Email is required")
                 .withValidator(new EmailValidator(
                         "This doesn't look like a valid email address"))
-                .bind(CustomerDTO::getEmail, CustomerDTO::setEmail);
+                .bind(CustomerEntity::getEmail, CustomerEntity::setEmail);
 
         binder.forField(phoneField)
-                .bind(CustomerDTO::getPhone, CustomerDTO::setPhone);
+                .bind(CustomerEntity::getPhone, CustomerEntity::setPhone);
     }
 
-    private VerticalLayout createDialogLayout() {
+
+    @Override
+    protected VerticalLayout createDialogLayout() {
         VerticalLayout fieldLayout = new VerticalLayout(nameField, emailField, phoneField);
         fieldLayout.setSpacing(false);
         fieldLayout.setPadding(false);
@@ -70,58 +66,46 @@ public class CustomerForm extends Div {
         return dialogLayout;
     }
 
-    public void open(String title) {
-        headline.setText(title);
-        dialog.open();
-    }
-
-    public void close() {
-        dialog.close();
-    }
-
-    public void setCustomerDTO(CustomerDTO customer) {
-        this.customerDTO = customer;
-        binder.readBean(customer);
-    }
-
-    private HorizontalLayout createButtonsLayout() {
+    @Override
+    protected HorizontalLayout createButtonsLayout() {
         saveButton.addClickListener(event -> validateAndSave());
-        deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, customerDTO)));
+        deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
         cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this)));
         return new HorizontalLayout(saveButton, deleteButton, cancelButton);
     }
 
-    private void validateAndSave() {
+    @Override
+    protected void validateAndSave() {
         try {
-            binder.writeBean(customerDTO);
-            fireEvent(new SaveEvent(this, customerDTO));
+            binder.writeBean(getEntity());
+            fireEvent(new SaveEvent(this, getEntity()));
         } catch (ValidationException e) {
             e.printStackTrace();
         }
     }
 
     public static abstract class CustomerFormEvent extends ComponentEvent<CustomerForm> {
-        private CustomerDTO item;
+        private final CustomerEntity item;
 
-        protected CustomerFormEvent(CustomerForm source, CustomerDTO item) {
+        protected CustomerFormEvent(CustomerForm source, CustomerEntity item) {
             super(source, false);
             this.item = item;
         }
 
-        public CustomerDTO getItem() {
+        public CustomerEntity getItem() {
             return item;
         }
     }
 
     public static class SaveEvent extends CustomerFormEvent {
-        SaveEvent(CustomerForm source, CustomerDTO contact) {
-            super(source, contact);
+        SaveEvent(CustomerForm source, CustomerEntity item) {
+            super(source, item);
         }
     }
 
     public static class DeleteEvent extends CustomerFormEvent {
-        DeleteEvent(CustomerForm source, CustomerDTO contact) {
-            super(source, contact);
+        DeleteEvent(CustomerForm source, CustomerEntity item) {
+            super(source, item);
         }
     }
 
@@ -134,5 +118,17 @@ public class CustomerForm extends Div {
     public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
                                                                   ComponentEventListener<T> listener) {
         return getEventBus().addListener(eventType, listener);
+    }
+
+    public TextField getNameField() {
+        return nameField;
+    }
+
+    public TextArea getEmailField() {
+        return emailField;
+    }
+
+    public TextField getPhoneField() {
+        return phoneField;
     }
 }

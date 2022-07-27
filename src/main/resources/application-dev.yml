@@ -8,6 +8,14 @@ spring:
       hibernate.format_sql: true
 logging:
   level:
+    web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+    org.hibernate.type: DEBUG
     org:
       springframework:
         web:
+          filter:
+            CommonsRequestLoggingFilter: DEBUG
+          client:
+            RestTemplate: DEBUG

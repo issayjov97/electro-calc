@@ -13,13 +13,16 @@ services:
       - "15432:5432"
 
   crm:
-    image: vaadin-crm:0.0.1
+    image: vaadin-crm
+    build:
+      context: .
     environment:
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/addai??currentSchema=crm"
-      SPRING_DATASOURCE_USERNAME: upce
-      SPRING_DATASOURCE_PASSWORD: a
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/addai?currentSchema=crm"
+      SPRING_DATASOURCE_USERNAME: addai
+      SPRING_DATASOURCE_PASSWORD: addai
     ports:
       - "8083:8080"
     depends_on:
       - db
+
+  docker build -t vaadin-crm .

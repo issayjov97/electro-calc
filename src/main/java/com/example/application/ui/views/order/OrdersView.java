@@ -1,19 +1,23 @@
 package com.example.application.ui.views.order;
 
-import com.example.application.dto.OrderDTO;
+import com.example.application.dto.DPH;
+import com.example.application.persistence.entity.OrderEntity;
+import com.example.application.persistence.repository.FileRepository;
 import com.example.application.service.CustomerService;
+import com.example.application.service.FinancialService;
+import com.example.application.service.JobOrderService;
 import com.example.application.service.OrderService;
+import com.example.application.service.PdfGenerateServiceImpl;
+import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.MainView;
 import com.example.application.ui.views.customer.CustomersView;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -26,120 +30,129 @@ import com.vaadin.flow.router.RouteParameters;
 
 @PageTitle("Orders")
 @Route(value = "orders", layout = MainView.class)
-public class OrdersView extends VerticalLayout implements HasUrlParameter<Long> {
-    private final Grid<OrderDTO> ordersGrid = new Grid(OrderDTO.class);
-    private final TextField      filterItem = new TextField();
-    private final OrderService    orderService;
-    private final CustomerService customerService;
-    private       OrderForm       orderForm;
+public class OrdersView extends AbstractServicesView<OrderEntity, OrderEntity> implements HasUrlParameter<Long> {
+    private final TextField            filterItem = new TextField();
+    private final OrderService         orderService;
+    private final CustomerService      customerService;
+    private final Button               addButton  = new Button("Add Order");
+    private final OrderDocumentsDialog orderDocumentsDialog;
+    private final Span                 span       = new Span("Orders");
+    private final OrderForm            orderForm;
 
-
-    public OrdersView(OrderService orderService, CustomerService customerService) {
+    public OrdersView(
+            OrderService orderService,
+            JobOrderService jobOrderService, CustomerService customerService,
+            FileRepository fileRepository,
+            PdfGenerateServiceImpl pdfGenerateService
+    ) {
+        super(new Grid<>(OrderEntity.class), orderService);
+        this.orderForm = new OrderForm(pdfGenerateService, jobOrderService, customerService);
         this.orderService = orderService;
         this.customerService = customerService;
+        this.orderDocumentsDialog = new OrderDocumentsDialog(fileRepository);
         addClassName("orders-view");
-        setSizeFull();
         configureGrid();
-        configureForm();
         configureEvents();
         add(getToolBar(), getContent());
-        filterItem.getElement().setAttribute("theme", "test");
     }
 
-    private Component getContent() {
-        HorizontalLayout content = new HorizontalLayout(ordersGrid);
-        content.addClassNames("content");
-        content.setSizeFull();
-        return content;
-    }
-
-    private void configureForm() {
-        orderForm = new OrderForm();
+    @Override
+    protected void configureForm() {
         orderForm.setWidth("25em");
     }
 
-    private void configureGrid() {
-        ordersGrid.addClassName("items-grid");
-        ordersGrid.setSizeFull();
-        ordersGrid.setColumns("totalPrice", "priceWithoutVat", "transportationCost", "materialsCost", "workHours", "createdAt");
-        ordersGrid.getColumns().forEach(itemColumn -> itemColumn.setAutoWidth(true));
-        ordersGrid.setItems(orderService.getUserOrders());
-        ordersGrid.asSingleSelect().addValueChangeListener(event -> {
-            orderForm.setOrderDTO(event.getValue());
+    @Override
+    protected void configureGrid() {
+        getItems().addClassName("items-grid");
+        getItems().setSizeFull();
+        getItems().setColumns("transportationCost", "materialsCost", "workHours", "createdAt");
+        getItems().addColumn(FinancialService::calculateServicePriceWithoutVAT).setHeader("Price without VAT");
+        getItems().addColumn(FinancialService::calculatePriceWithVat).setHeader("Price with VAT");
+        getItems().addColumn(FinancialService::calculatePriceWithVat).setHeader("Total price");
+        getItems().getColumns().forEach(itemColumn -> itemColumn.setAutoWidth(true));
+        getItems().setItems(orderService.getFirmOrders());
+        getItems().asSingleSelect().addValueChangeListener(event -> {
+            orderForm.setEntity(event.getValue());
             orderForm.open("Edit order");
         });
 
-        ordersGrid.addComponentColumn((order) -> {
-            Select<Long> select = new Select<>();
-            select.setItems(21L, 15L, 10L);
+        getItems().addComponentColumn((order) -> {
+            Select<Integer> select = new Select<>();
+            select.setItems(DPH.getRates());
             select.setValue(order.getVAT());
             select.addValueChangeListener(e -> {
                 order.setVAT(select.getValue());
-                orderService.updateOrder(order);
+                orderService.save(order);
                 updateList();
             });
             return select;
         }).setHeader("VAT");
 
-        ordersGrid.addComponentColumn((order) -> {
-            Button details = new Button("Details");
-            details.addClickListener(e -> {
-                UI.getCurrent().navigate(OrdersDetailsView.class, new RouteParameters("orderId", String.valueOf(order.getId())));
+        getItems().addComponentColumn((order) -> {
+            final Button patternDetailsButton = new Button("Details");
+            patternDetailsButton.addClickListener(e -> {
+                UI.getCurrent().navigate(OrdersPatternsView.class, new RouteParameters("orderId", String.valueOf(order.getId())));
             });
-            return details;
+            return patternDetailsButton;
         }).setHeader("Patterns");
 
-        ordersGrid.addComponentColumn((order) -> {
-            Button editButton = new Button("Details");
-            editButton.addClickListener(e -> {
-                    UI.getCurrent().navigate(CustomersView.class, order.getCustomer().getId());
+        getItems().addComponentColumn((order) -> {
+            final Button customerDetailsButton = new Button("Details");
+            customerDetailsButton.addClickListener(e -> {
+                UI.getCurrent().navigate(CustomersView.class, order.getCustomerEntity().getId());
             });
-            return editButton;
+            return customerDetailsButton;
         }).setHeader("Customer");
 
-        ordersGrid.addComponentColumn((order) -> {
-            Button summaryDetails = new Button("Details");
-            summaryDetails.addClickListener(e -> {
-
+        getItems().addComponentColumn((order) -> {
+            final Button deleteButton = new Button("Attach");
+            deleteButton.addClickListener(e -> {
+                orderDocumentsDialog.setEntity(order);
+                orderDocumentsDialog.open();
             });
-            return summaryDetails;
-        }).setHeader("Summary");
+            return deleteButton;
+        }).setHeader("Documents");
     }
 
-    private HorizontalLayout getToolBar() {
+    @Override
+    protected HorizontalLayout getToolBar() {
+        span.setClassName("headline");
+
         filterItem.getElement().setAttribute("theme", "test");
         filterItem.setPlaceholder("Filter ...");
         filterItem.setClearButtonVisible(true);
         filterItem.setValueChangeMode(ValueChangeMode.LAZY);
 
-        Button addContactButton = new Button("Add Order");
-        addContactButton.addClickListener(e -> {
-            ordersGrid.asSingleSelect().clear();
-            orderForm.setOrderDTO(new OrderDTO());
+        addButton.addClickListener(e -> {
+            getItems().asSingleSelect().clear();
+            orderForm.setEntity(new OrderEntity());
             orderForm.open("New order");
         });
 
-        HorizontalLayout filterPart = new HorizontalLayout(filterItem, addContactButton);
+        HorizontalLayout filterPart = new HorizontalLayout(filterItem, addButton);
         filterPart.addClassName("filterPart");
 
-        HorizontalLayout toolbar = new HorizontalLayout(new Label("Orders"), filterPart);
+        HorizontalLayout toolbar = new HorizontalLayout(span, filterPart);
         toolbar.addClassName("toolbar");
         return toolbar;
     }
 
-    private void configureEvents() {
+
+    @Override
+    protected void configureEvents() {
         orderForm.addListener(OrderForm.SaveEvent.class, this::saveItem);
         orderForm.addListener(OrderForm.CloseEvent.class, e -> closeEditor());
         orderForm.addListener(OrderForm.DeleteEvent.class, this::deleteItem);
     }
 
-    private void closeEditor() {
-        orderForm.setOrderDTO(null);
+    @Override
+    protected void closeEditor() {
+        orderForm.setEntity(null);
         orderForm.close();
     }
 
     private void saveItem(OrderForm.SaveEvent event) {
-        orderService.saveOrder(event.getItem());
+        orderService.save(event.getItem());
         updateList();
         closeEditor();
         var notification = Notification.show("Order was saved");
@@ -147,12 +160,13 @@ public class OrdersView extends VerticalLayout implements HasUrlParameter<Long> 
         notification.setPosition(Notification.Position.TOP_CENTER);
     }
 
-    private void updateList() {
-        ordersGrid.setItems(orderService.getAll());
+    @Override
+    protected void updateList() {
+        getItems().setItems((orderService.getFirmOrders()));
     }
 
     private void deleteItem(OrderForm.DeleteEvent event) {
-        orderService.deleteOrder(event.getItem());
+        orderService.delete(event.getItem());
         updateList();
         closeEditor();
         var notification = Notification.show("Order was deleted");
@@ -163,6 +177,18 @@ public class OrdersView extends VerticalLayout implements HasUrlParameter<Long> 
     @Override
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter Long customerId) {
         if (customerId != null)
-            ordersGrid.setItems(customerService.getCustomerOrders(customerId));
+            getItems().setItems(customerService.load(customerId).getOrders());
+    }
+
+    public TextField getFilterItem() {
+        return filterItem;
+    }
+
+    public Button getAddButton() {
+        return addButton;
+    }
+
+    public OrderForm getOrderForm() {
+        return orderForm;
     }
 }

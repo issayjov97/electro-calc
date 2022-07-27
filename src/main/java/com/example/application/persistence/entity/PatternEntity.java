@@ -1,46 +1,46 @@
 package com.example.application.persistence.entity;
 
+import com.example.application.service.FinancialService;
+
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
 @Table(name = "patterns")
-public class PatternEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer    id;
-    private String     name;
-    private String     description;
-    private Double     duration        = 0.0;
-    private BigDecimal priceWithoutVat = new BigDecimal(0);
+public class PatternEntity extends VATEntity {
+
+    private String name;
+    private String description;
+    private Double duration = 0.0;
+    private String measureUnit;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private UserEntity userEntity;
+    private FirmEntity firmEntity;
+
     @ManyToMany(mappedBy = "orderPatterns")
     List<OrderEntity> orders;
 
-    public UserEntity getUserEntity() {
-        return userEntity;
+    @ManyToMany(mappedBy = "offerPatterns")
+    List<OfferEntity> offers;
+
+    @ManyToMany(mappedBy = "demandPatterns")
+    List<DemandEntity> demands;
+
+    @ManyToMany(mappedBy = "imagePatterns")
+    List<ImageEntity> patternImages;
+
+
+    public FirmEntity getFirmEntity() {
+        return firmEntity;
     }
 
-    public void setUserEntity(UserEntity userEntity) {
-        this.userEntity = userEntity;
-    }
-
-    public PatternEntity() {
-    }
-
-    public Integer getId() {
-        return id;
+    public void setFirmEntity(FirmEntity firmEntity) {
+        this.firmEntity = firmEntity;
     }
 
     public String getName() {
@@ -55,14 +55,6 @@ public class PatternEntity {
         return duration;
     }
 
-    public BigDecimal getPriceWithoutVat() {
-        return priceWithoutVat;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -75,10 +67,6 @@ public class PatternEntity {
         this.duration = duration;
     }
 
-    public void setPriceWithoutVat(BigDecimal priceWithoutVat) {
-        this.priceWithoutVat = priceWithoutVat;
-    }
-
     public List<OrderEntity> getOrders() {
         return orders;
     }
@@ -86,4 +74,43 @@ public class PatternEntity {
     public void setOrders(List<OrderEntity> orders) {
         this.orders = orders;
     }
+
+    public String getMeasureUnit() {
+        return measureUnit;
+    }
+
+    public void setMeasureUnit(String measureUnit) {
+        this.measureUnit = measureUnit;
+    }
+
+    public List<OfferEntity> getOffers() {
+        return offers;
+    }
+
+    public void setOffers(List<OfferEntity> offers) {
+        this.offers = offers;
+    }
+
+    public List<DemandEntity> getDemands() {
+        return demands;
+    }
+
+    public void setDemands(List<DemandEntity> demands) {
+        this.demands = demands;
+    }
+
+    @Override
+    public void calculate() {
+        this.setPriceWithVAT(FinancialService.calculatePriceWithVat(this));
+    }
+
+    public List<ImageEntity> getPatternImages() {
+        return patternImages;
+    }
+
+    public void setPatternImages(List<ImageEntity> patternImages) {
+        this.patternImages = patternImages;
+    }
+
+
 }

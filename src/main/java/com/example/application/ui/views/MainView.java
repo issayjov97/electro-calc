@@ -2,11 +2,13 @@ package com.example.application.ui.views;
 
 import com.example.application.service.AuthService;
 import com.example.application.service.UserService;
-import com.example.application.ui.views.admin.UsersView;
 import com.example.application.ui.views.customer.CustomersView;
+import com.example.application.ui.views.demand.DemandsView;
+import com.example.application.ui.views.jobOrder.JobOrderView;
 import com.example.application.ui.views.login.LoginView;
+import com.example.application.ui.views.offer.OffersView;
 import com.example.application.ui.views.order.OrdersView;
-import com.example.application.ui.views.patern.ItemsView;
+import com.example.application.ui.views.patern.PatternsView;
 import com.example.application.ui.views.settings.SettingsView;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -18,14 +20,12 @@ import com.vaadin.flow.component.avatar.AvatarVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.HighlightConditions;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.VaadinServletRequest;
@@ -33,7 +33,6 @@ import com.vaadin.flow.server.VaadinServletResponse;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.Lumo;
-import com.vaadin.flow.theme.material.Material;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
@@ -49,12 +48,6 @@ public class MainView extends AppLayout {
         this.userService = userService;
         createHeader();
         createDrawer();
-        TextField textField = new TextField();
-        Span greeting = new Span("CRM");
-        textField.addValueChangeListener(event ->
-                greeting.setText("Hello " + event.getValue()));
-        VerticalLayout layout = new VerticalLayout(
-                textField, greeting);
     }
 
     private void createHeader() {
@@ -79,13 +72,19 @@ public class MainView extends AppLayout {
 
     private void createDrawer() {
         List<RouterLink> links = new ArrayList<>();
-        RouterLink listLink = new RouterLink("Patterns", ItemsView.class);
+        RouterLink listLink = new RouterLink("Patterns", PatternsView.class);
         RouterLink customersLink = new RouterLink("Customers", CustomersView.class);
         RouterLink ordersLink = new RouterLink("Orders", OrdersView.class);
+        RouterLink offersLink = new RouterLink("Offers", OffersView.class);
+        RouterLink demandsLink = new RouterLink("Demands", DemandsView.class);
+        RouterLink jobOrdersLink = new RouterLink("Job orders", JobOrderView.class);
         listLink.setHighlightCondition(HighlightConditions.sameLocation());
         links.add(listLink);
         links.add(customersLink);
         links.add(ordersLink);
+        links.add(offersLink);
+        links.add(demandsLink);
+        links.add(jobOrdersLink);
         VerticalLayout drawer = new VerticalLayout(links.toArray(RouterLink[]::new));
         drawer.setSizeUndefined();
         addToDrawer(drawer);

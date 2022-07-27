@@ -1,110 +1,78 @@
 package com.example.application.service;
 
-import com.example.application.dto.OrderDTO;
-import com.example.application.mapper.OrderMapper;
 import com.example.application.mapper.PatternMapper;
-import com.example.application.persistence.entity.CustomerEntity;
 import com.example.application.persistence.entity.OrderEntity;
 import com.example.application.persistence.entity.PatternEntity;
 import com.example.application.persistence.repository.OrderRepository;
-import com.example.application.persistence.repository.UserRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class OrderService {
+public class OrderService implements CrudService<OrderEntity> {
     private final OrderRepository orderRepository;
     private final UserService     userService;
+    private final FirmService     firmService;
 
-    public OrderService(
-            OrderRepository orderRepository,
-            UserRepository userRepository, UserService userService) {
+    public OrderService(OrderRepository orderRepository, UserService userService, FirmService firmService) {
         this.orderRepository = orderRepository;
         this.userService = userService;
+        this.firmService = firmService;
+    }
+
+    @Transactional
+    @Override
+    public OrderEntity save(OrderEntity orderEntity) {
+        if (orderEntity.getId() == null)
+            orderEntity.setCreatedAt(LocalDateTime.now());
+        orderEntity.setFirmEntity(userService.getUserFirm());
+        return CrudService.super.save(orderEntity);
+    }
+
+    @Override
+    public void delete(OrderEntity entity) {
+        entity.setCustomerEntity(null);
+        CrudService.super.delete(entity);
+    }
+
+    @Override
+    public void deleteById(long id) {
+        CrudService.super.deleteById(id);
+    }
+
+    @Override
+    public long count() {
+        return CrudService.super.count();
+    }
+
+    @Override
+    public OrderEntity load(long id) {
+        return CrudService.super.load(id);
+    }
+
+    @Override
+    public JpaRepository<OrderEntity, Long> getRepository() {
+        return orderRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<OrderDTO> getAll() {
-        return orderRepository.findAll().stream().map(OrderMapper::convertToDTO)
-                .sorted(Comparator.comparing(OrderDTO::getTotalPrice))
-                .collect(Collectors.toList());
+    public Set<OrderEntity> getFirmOrders() {
+        return userService.getUserFirm().getOrders();
     }
 
-    @Transactional(readOnly = true)
-    public List<OrderDTO> getUserOrders() {
-        var userEntity = userService.getByUsername(AuthService.getUsername());
-        var orders = userEntity.getCustomerEntities().stream().map(CustomerEntity::getOrders).flatMap(Collection::stream).collect(Collectors.toList());
-        return orders.stream().map(OrderMapper::convertToDTO).collect(Collectors.toList());
+    @Transactional
+    public void addOrderPatterns(Set<PatternEntity> orderPatterns, OrderEntity orderEntity) {
+        var firmEntity = userService.getUserFirm();
+        var addedUserPatterns = orderPatterns.stream().filter(it -> it.getFirmEntity() == null)
+                .map(it -> PatternMapper.convertToEntity(it, firmEntity))
+                .collect(Collectors.toSet());
+        firmEntity.getPatterns().addAll(addedUserPatterns);
+        orderEntity.addPatterns(orderPatterns);
+        firmService.save(firmEntity);
+        save(orderEntity);
     }
-
-    @Transactional(readOnly = true)
-    public List<OrderDTO> getOrdersSummary() {
-        final var ordersEntities = orderRepository.findAll();
-        return orderRepository.findAll().stream().map(OrderMapper::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
-    public void saveOrder(OrderDTO orderDTO) {
-        orderDTO.setCreatedAt(LocalDateTime.now());
-        orderRepository.saveAndFlush(OrderMapper.convertToEntity(orderDTO));
-    }
-
-    public void saveEntityOrder(OrderEntity order) {
-        orderRepository.saveAndFlush(order);
-    }
-
-    public void updateOrder(OrderDTO orderDTO) {
-        final OrderEntity orderEntity = orderRepository.findById(orderDTO.getId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-        orderEntity.setMaterialsCost(orderDTO.getMaterialsCost());
-        orderEntity.setTransportationCost(orderDTO.getTransportationCost());
-        orderEntity.setWorkHours(orderDTO.getWorkHours());
-        orderEntity.setVat(orderDTO.getVAT());
-
-        orderRepository.saveAndFlush(orderEntity);
-    }
-
-
-    public void update(OrderDTO orderDTO) {
-        var orderEntity = orderRepository.findById(orderDTO.getId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-        orderEntity.getOrderPatterns().addAll(
-                orderDTO.getPatterns().stream().map(PatternMapper::convertToEntity)
-                        .collect(Collectors.toSet()));
-        orderRepository.save(orderEntity);
-    }
-
-    public void deletePatterns(OrderDTO orderDTO) {
-        var orderEntity = orderRepository.findById(orderDTO.getId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-        orderEntity.setOrderPatterns(
-                orderDTO.getPatterns().stream().map(PatternMapper::convertToEntity)
-                        .collect(Collectors.toSet()));
-        orderRepository.save(orderEntity);
-    }
-
-
-    public OrderDTO getOrderById(Long id) {
-        var orderEntity = orderRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("Order not found"));
-        return OrderMapper.convertToDTO(orderEntity);
-    }
-
-    public OrderEntity getOrderEntityId(Long id) {
-        return orderRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("Order not found"));
-    }
-
-
-    public void deleteOrder(OrderDTO orderDTO) {
-        orderRepository.deleteById(orderDTO.getId());
-    }
-
 }

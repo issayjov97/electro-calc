@@ -1,8 +1,7 @@
 package com.example.application.ui.views.settings;
 
 import com.example.application.persistence.entity.AuthorityEntity;
-import com.example.application.service.UserService;
-import com.example.application.ui.views.patern.PatternForm;
+import com.example.application.service.AuthorityService;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
@@ -18,11 +17,11 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.shared.Registration;
 
 public class AddAuthorityDialog extends Div {
-    private       Dialog      dialog;
-    private final UserService userService;
+    private final Dialog           dialog;
+    private final AuthorityService authorityService;
 
-    public AddAuthorityDialog(UserService userService) {
-        this.userService = userService;
+    public AddAuthorityDialog(AuthorityService authorityService) {
+        this.authorityService = authorityService;
         this.dialog = new Dialog();
 
         VerticalLayout dialogLayout = createDialogLayout();
@@ -32,7 +31,6 @@ public class AddAuthorityDialog extends Div {
     void openDialog() {
         this.dialog.open();
     }
-
 
     private VerticalLayout createDialogLayout() {
         H2 headline = new H2("Add new role");
@@ -45,8 +43,9 @@ public class AddAuthorityDialog extends Div {
         Button cancelButton = new Button("Cancel", e -> dialog.close());
         Button saveButton = new Button("Save", e -> {
             if (roleField.getValue() != null && !roleField.getValue().isBlank()) {
-                var authority = new AuthorityEntity(roleField.getValue());
-                userService.addAuthority(authority);
+                var authority = new AuthorityEntity();
+                authority.setName(roleField.getValue());
+                authorityService.save(authority);
                 var notification = Notification.show("Authoirtyy was saved");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);

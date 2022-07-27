@@ -1,5 +1,8 @@
 package com.example.application.dto;
 
+import com.example.application.persistence.entity.CustomerEntity;
+import com.example.application.persistence.entity.PatternEntity;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -14,9 +17,9 @@ public class OrderDTO {
     private BigDecimal      materialsCost;
     private double        workHours;
     private Long          VAT;
-    private LocalDateTime createdAt;
-    private Set<PatternDTO> patterns;
-    private CustomerDTO     customer;
+    private LocalDateTime      createdAt;
+    private Set<PatternEntity> patterns;
+    private CustomerEntity        customer;
 
     public BigDecimal getPriceWithVat() {
         return priceWithVat;
@@ -35,15 +38,15 @@ public class OrderDTO {
     }
 
 
-    public CustomerDTO getCustomer() {
+    public CustomerEntity getCustomer() {
         return customer;
     }
 
-    public Set<PatternDTO> getPatterns() {
+    public Set<PatternEntity> getPatterns() {
         return patterns;
     }
 
-    public void setPatterns(Set<PatternDTO> patterns) {
+    public void setPatterns(Set<PatternEntity> patterns) {
         this.patterns = patterns;
     }
 
@@ -104,7 +107,7 @@ public class OrderDTO {
     }
 
 
-    public void setCustomer(CustomerDTO customer) {
+    public void setCustomer(CustomerEntity customer) {
         this.customer = customer;
     }
 

@@ -73,14 +73,25 @@ vaadin-avatar {
     font-weight: bold;
 
 }
-.filterPart{
+
+.filterPart {
     width: 100%;
     height: 100%;
     justify-content: end;
 
 }
 
-.toolbar{
+.toolbar {
     width: 100%;
     align-items: center;
+}
+
+.headline {
+    font-size: 24px;
+    color: white;
+    font-family: sans-serif;
+}
+
+.anchor-link, label {
+    color: black;
 }

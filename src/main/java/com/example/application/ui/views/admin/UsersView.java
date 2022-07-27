@@ -1,64 +1,70 @@
 package com.example.application.ui.views.admin;
 
-import com.example.application.dto.UserDTO;
+import com.example.application.persistence.entity.AuthorityEntity;
+import com.example.application.persistence.entity.UserEntity;
+import com.example.application.service.AuthorityService;
+import com.example.application.service.FirmService;
 import com.example.application.service.UserService;
+import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.settings.SettingsView;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.security.access.annotation.Secured;
 
+import java.util.stream.Collectors;
+
 @PageTitle("Users")
 @Secured("ADMIN")
 @Route(value = "users", layout = SettingsView.class)
-public class UsersView extends VerticalLayout {
-    private final Grid<UserDTO> itemsGrid   = new Grid(UserDTO.class);
-    private final TextField     nameFilter  = new TextField();
-    private final NumberField   emailFilter = new NumberField();
-    private final UserService   userService;
-    private final UserForm      userForm    = new UserForm();
+public class UsersView extends AbstractServicesView<UserEntity, UserEntity> {
+    private final TextField   usernameFilter = new TextField();
+    private final TextField   emailFilter    = new TextField();
+    private final UserForm    userForm;
+    private final Button      addButton      = new Button("Add user");
+    private final Button      filterButton   = new Button("Filter");
+    private final UserService userService;
 
-    public UsersView(UserService userService) {
+    public UsersView(UserService userService, AuthorityService authorityService, FirmService firmService) {
+        super(new Grid<>(UserEntity.class), userService);
         this.userService = userService;
-        userForm.setAllAuthorities(userService.getMappedAuthorities());
-        addClassName("Patterns-view");
+        this.userForm = new UserForm(firmService);
+        userForm.setAllAuthorities(authorityService.loadAll());
+        addClassName("Users-view");
         setSizeFull();
         configureGrid();
         add(getToolBar(), getContent(), userForm);
         configureEvents();
     }
 
-    private Component getContent() {
-        HorizontalLayout content = new HorizontalLayout(itemsGrid);
-        content.addClassNames("content");
-        content.setSizeFull();
-        return content;
+    @Override
+    protected void configureForm() {
+
     }
 
-    private void configureGrid() {
-        itemsGrid.addClassName("items-grid");
-        itemsGrid.setColumns("username", "firstName", "lastName", "email", "enabled", "createdAt","authorities");
-        itemsGrid.getColumns().forEach(itemColumn -> itemColumn.setAutoWidth(true));
-        itemsGrid.setItems(userService.getAll());
-        itemsGrid.asSingleSelect().addValueChangeListener(event -> {
+    @Override
+    protected void configureGrid() {
+        getItems().addClassName("Users-grid");
+        getItems().setColumns("username", "firstName", "lastName", "email", "enabled", "createdAt");
+        getItems().getColumns().forEach(itemColumn -> itemColumn.setAutoWidth(true));
+        getItems().setItems(userService.loadAll());
+        getItems().asSingleSelect().addValueChangeListener(event -> {
             if (event.getValue() != null) {
-                userForm.setUserDTO(event.getValue());
+                userForm.setEntity(event.getValue());
                 userForm.open("Edit user");
             }
         });
-        itemsGrid.addComponentColumn((user) -> {
+        getItems().addColumn(e -> e.getAuthorityEntities().stream().map(AuthorityEntity::getName).collect(Collectors.joining(","))).setHeader("Authorities");
+        getItems().addComponentColumn((user) -> {
             Button deleteButton = new Button("Delete");
             deleteButton.addClickListener(e -> {
-                userService.deleteUser(user.getId());
+                userService.delete(user);
                 updateList();
                 var notification = Notification.show("User was deleted");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -68,44 +74,43 @@ public class UsersView extends VerticalLayout {
         }).setHeader("Actions");
     }
 
-    private HorizontalLayout getToolBar() {
-        nameFilter.getElement().setAttribute("theme", "test");
+    @Override
+    protected HorizontalLayout getToolBar() {
+        usernameFilter.getElement().setAttribute("theme", "test");
         emailFilter.getElement().setAttribute("theme", "test");
 
-        nameFilter.setPlaceholder("username");
-        nameFilter.setClearButtonVisible(true);
-        nameFilter.setValueChangeMode(ValueChangeMode.LAZY);
+        usernameFilter.setPlaceholder("username");
+        usernameFilter.setClearButtonVisible(true);
+        usernameFilter.setValueChangeMode(ValueChangeMode.LAZY);
 
         emailFilter.setPlaceholder("email");
         emailFilter.setClearButtonVisible(true);
         emailFilter.setValueChangeMode(ValueChangeMode.LAZY);
 
-        Button filterButton = new Button("Filter");
-
         filterButton.addClickListener(e -> {
-            //itemsGrid.setItems(userService.getAll().filter(nameFilter.getValue(), priceFilter.getValue(), durationFilter.getValue()));
+            getItems().setItems(userService.filter(usernameFilter.getValue(), emailFilter.getValue()));
         });
 
-        Button addPattern = new Button("Add user");
-
-        addPattern.addClickListener(e -> {
-            itemsGrid.asSingleSelect().clear();
-            userForm.setUserDTO(new UserDTO());
+        addButton.addClickListener(e -> {
+            getItems().asSingleSelect().clear();
+            userForm.setEntity(new UserEntity());
             userForm.open("Add user");
         });
-        HorizontalLayout toolbar = new HorizontalLayout(nameFilter, emailFilter, filterButton, addPattern);
+        HorizontalLayout toolbar = new HorizontalLayout(usernameFilter, emailFilter, filterButton, addButton);
         toolbar.addClassName("toolbar");
         return toolbar;
     }
 
-    private void configureEvents() {
+    @Override
+    protected void configureEvents() {
         userForm.addListener(UserForm.SaveEvent.class, this::saveItem);
         userForm.addListener(UserForm.CloseEvent.class, e -> closeEditor());
         userForm.addListener(UserForm.DeleteEvent.class, this::deleteItem);
     }
 
-    private void closeEditor() {
-        userForm.setUserDTO(null);
+    @Override
+    protected void closeEditor() {
+        userForm.setEntity(null);
         userForm.close();
     }
 
@@ -118,16 +123,37 @@ public class UsersView extends VerticalLayout {
         notification.setPosition(Notification.Position.TOP_CENTER);
     }
 
-    private void updateList() {
-        itemsGrid.setItems(userService.getAll());
+    @Override
+    protected void updateList() {
+        getItems().setItems(userService.loadAll());
     }
 
     private void deleteItem(UserForm.DeleteEvent event) {
-        userService.deletePattern(event.getItem());
+        userService.delete(event.getItem());
         updateList();
         closeEditor();
         var notification = Notification.show("User was deleted");
         notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         notification.setPosition(Notification.Position.TOP_CENTER);
+    }
+
+    public TextField getUsernameFilter() {
+        return usernameFilter;
+    }
+
+    public TextField getEmailFilter() {
+        return emailFilter;
+    }
+
+    public UserForm getUserForm() {
+        return userForm;
+    }
+
+    public Button getAddButton() {
+        return addButton;
+    }
+
+    public Button getFilterButton() {
+        return filterButton;
     }
 }

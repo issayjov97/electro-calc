@@ -1,112 +1,124 @@
 package com.example.application.persistence.entity;
 
+import com.example.application.service.FinancialService;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Set;
 
 @Entity
 @Table(name = "orders")
-public class OrderEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long       id;
-    private BigDecimal transportationCost;
-    private BigDecimal materialsCost;
-    private double        workHours = 0.0;
-    private Long          vat = 21L;
-    private LocalDateTime createdAt;
+public class OrderEntity extends AbstractServiceEntity {
 
     @ManyToOne
     private CustomerEntity customerEntity;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToOne
+    private FirmEntity firmEntity;
+
+    @ManyToOne
+    private JobOrderEntity jobOrderEntity;
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {
+            CascadeType.MERGE
+    })
     @JoinTable(
             name = "order_pattern",
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "pattern_id"))
     private Set<PatternEntity> orderPatterns;
 
-    public Set<PatternEntity> getOrderPatterns() {
+    @OneToMany(
+            mappedBy = "orderEntity",
+            orphanRemoval = true,
+            cascade = CascadeType.ALL
+    )
+    private Set<FileEntity> orderFiles;
+
+    public void addFileEntity(FileEntity fileEntity) {
+        this.orderFiles.add(fileEntity);
+        fileEntity.setOrderEntity(this);
+    }
+
+    public void removeFileEntity(FileEntity fileEntity) {
+        this.orderFiles.remove(fileEntity);
+        fileEntity.setOrderEntity(null);
+    }
+
+    public void addPattern(PatternEntity patternEntity) {
+        this.orderPatterns.add(patternEntity);
+        patternEntity.getOrders().add(this);
+    }
+
+    public void addPatterns(Collection<PatternEntity> patternEntities) {
+        this.orderPatterns.addAll(patternEntities);
+        patternEntities.forEach(it -> it.getOrders().add(this));
+    }
+
+
+    public void removePatter(PatternEntity patternEntity) {
+        this.orderPatterns.remove(patternEntity);
+        patternEntity.getOrders().remove(this);
+    }
+
+    public FirmEntity getFirmEntity() {
+        return firmEntity;
+    }
+
+    public void setFirmEntity(FirmEntity firmEntity) {
+        this.firmEntity = firmEntity;
+    }
+
+    @Override
+    public void calculate() {
+        this.setPriceWithoutVAT(FinancialService.calculateServicePriceWithoutVAT(this));
+        this.setPriceWithVAT(FinancialService.calculatePriceWithVat(this));
+    }
+
+    @Override
+    public Set<PatternEntity> getPatterns() {
         return orderPatterns;
-
     }
 
-    public Long getVat() {
-        return vat;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-
-    public BigDecimal getTransportationCost() {
-        return transportationCost;
-    }
-
-    public BigDecimal getMaterialsCost() {
-        return materialsCost;
-    }
-
-    public double getWorkHours() {
-        return workHours;
-    }
-
+    @Override
     public CustomerEntity getCustomerEntity() {
         return customerEntity;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    @Override
+    public Set<FileEntity> getFiles() {
+        return orderFiles;
     }
 
+    @Override
     public void setCustomerEntity(CustomerEntity customerEntity) {
         this.customerEntity = customerEntity;
     }
 
-    public void setTransportationCost(BigDecimal transportationCost) {
-        this.transportationCost = transportationCost;
-    }
-
-    public void setMaterialsCost(BigDecimal materialsCost) {
-        this.materialsCost = materialsCost;
-    }
-
-    public void setWorkHours(double workHours) {
-        this.workHours = workHours;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public void setVat(Long vat) {
-        this.vat = vat;
-    }
-
-    public void setOrderPatterns(Set<PatternEntity> orderPatterns) {
-        this.orderPatterns = orderPatterns;
+    @Override
+    public void setPatterns(Set<PatternEntity> patterns) {
+        this.orderPatterns = patterns;
     }
 
     @Override
-    public String toString() {
-        return "OrderEntity{" +
-                "id=" + id +
-                '}';
+    public void setFiles(Set<FileEntity> files) {
+        this.orderFiles = files;
+    }
+
+    public JobOrderEntity getJobOrderEntity() {
+        return jobOrderEntity;
+    }
+
+    public void setJobOrderEntity(JobOrderEntity jobOrderEntity) {
+        this.jobOrderEntity = jobOrderEntity;
     }
 }
 
