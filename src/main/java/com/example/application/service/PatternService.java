@@ -1,25 +1,27 @@
 package com.example.application.service;
 
+import com.example.application.mapper.PatternMapper;
 import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.persistence.entity.PatternEntity;
 import com.example.application.persistence.repository.PatternRepository;
-import com.example.application.predicate.PatternPredicate;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
-public class PatternService implements CrudService<PatternEntity> {
+public class PatternService implements FilterableCrudService<PatternEntity> {
     private final PatternRepository patternRepository;
+    private final UserService       userService;
 
-    public PatternService(PatternRepository patternRepository, UserService userService) {
+    public PatternService(PatternRepository patternRepository, UserService userService, UserService userService1) {
         this.patternRepository = patternRepository;
+        this.userService = userService1;
     }
 
     @Override
@@ -29,71 +31,90 @@ public class PatternService implements CrudService<PatternEntity> {
 
     @Override
     public PatternEntity save(PatternEntity entity) {
-        return CrudService.super.save(entity);
+        final var firm = userService.getUserFirm();
+        if (PatternEntity.isDefaultPattern(entity)) {
+            entity = PatternMapper.convertToEntity(entity, firm);
+        }
+        return FilterableCrudService.super.save(entity);
     }
 
     @Override
+    @Transactional
     public void delete(PatternEntity entity) {
-        CrudService.super.delete(entity);
+        var pattern = patternRepository.findFullPatternById(entity.getId());
+        pattern.getDemands().forEach(it -> it.removePattern(pattern));
+        pattern.getOrders().forEach(it -> it.removePattern(pattern));
+        pattern.getOffers().forEach(it -> it.removePattern(pattern));
+        pattern.getFirmEntity().removePattern(pattern);
+        FilterableCrudService.super.delete(pattern);
     }
 
     @Override
     public void deleteById(long id) {
-        CrudService.super.deleteById(id);
+        FilterableCrudService.super.deleteById(id);
     }
 
     @Override
     public long count() {
-        return CrudService.super.count();
+        return FilterableCrudService.super.count();
     }
 
     @Override
     public PatternEntity load(long id) {
-        return CrudService.super.load(id);
+        return FilterableCrudService.super.load(id);
     }
 
     @Override
     public List<PatternEntity> loadAll() {
-        return CrudService.super.loadAll();
+        return FilterableCrudService.super.loadAll();
     }
 
     @Transactional(readOnly = true)
-    public Set<PatternEntity> getAll(FirmEntity firmEntity) {
-        Set<PatternEntity> customerPatternEntities = firmEntity.getPatterns();
-        Set<PatternEntity> defaultPatternEntities = customerPatternEntities.isEmpty() ?
-                getDefaultPatterns() : getFirmDefaultPatterns(customerPatternEntities);
-
-        return Stream.of(customerPatternEntities, defaultPatternEntities).flatMap(Collection::stream)
-                .collect(Collectors.toSet());
+    public int patternsCount(Specification<PatternEntity> specifications) {
+        return new HashSet<>(patternRepository.findAll(specifications)).size();
     }
 
     @Transactional(readOnly = true)
-    public Set<PatternEntity> getDefaultPatterns() {
-        return patternRepository.findDefaultPattern();
+    public int firmPatternsCount(FirmEntity firmEntity) {
+        return patternRepository.count(firmEntity.getId());
     }
 
     @Transactional(readOnly = true)
-    public Set<PatternEntity> getFirmDefaultPatterns(Set<PatternEntity> customerPatternEntities) {
-        return patternRepository.findDefaultPatternsNotIn(
-                customerPatternEntities.stream().map(PatternEntity::getName).collect(Collectors.toList()));
+    public Set<PatternEntity> getFirmDefaultPatterns() {
+        var firm = userService.getUserFirm();
+        return patternRepository.findByDefaultPatternsFirmEntityId(firm.getId());
     }
+
+    @Transactional(readOnly = true)
+    public Set<PatternEntity> getFirmPatterns() {
+        var firm = userService.getUserFirm();
+        return patternRepository.findFirmPatterns(firm.getId());
+    }
+
+    @Override
+    public long countAnyMatching(Specification<PatternEntity> specification) {
+        return patternRepository.count(specification);
+    }
+
+    @Override
+    public Set<PatternEntity> filter(Specification<PatternEntity> specifications, int offset, int size) {
+        return new HashSet<>(patternRepository.findAll(specifications, PageRequest.of(offset / size, size)).getContent());
+    }
+
+    @Transactional(readOnly = true)
+    public Set<PatternEntity> filter(Specification<PatternEntity> specifications) {
+        return new HashSet<>(patternRepository.findAll(specifications));
+    }
+
 
     @Transactional(readOnly = true)
     public PatternEntity getPattern(String name) {
         return patternRepository.findByName(name);
     }
 
-    public Set<PatternEntity> filter(FirmEntity firmEntity, String name, Double price, Double duration) {
-        Set<PatternEntity> result = getAll(firmEntity);
-        if (name != null && !name.isBlank()) {
-            PatternPredicate.withName(name);
-        }
-        if (price != null) {
-            PatternPredicate.withPrice(price);
-        }
-        if (duration != null) {
-            PatternPredicate.withDuration(duration);
-        }
-        return PatternPredicate.filterPatterns(result);
+    @Transactional(readOnly = true)
+    public PatternEntity getPatternWithOffers(Long id) {
+        return patternRepository.findPatternWithOffersById(id);
     }
+
 }

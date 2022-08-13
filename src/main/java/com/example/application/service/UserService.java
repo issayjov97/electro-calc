@@ -1,5 +1,6 @@
 package com.example.application.service;
 
+import com.example.application.persistence.entity.AuthorityEntity;
 import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.persistence.entity.UserEntity;
 import com.example.application.persistence.repository.UserRepository;
@@ -63,22 +64,30 @@ public class UserService implements CrudService<UserEntity> {
     @Transactional(readOnly = true)
     @Override
     public List<UserEntity> loadAll() {
-        return CrudService.super.loadAll();
+        return userRepository.findAll();
     }
 
     @Transactional(readOnly = true)
     public UserEntity getByUsername(String username) {
-        return userRepository.findByUsername(username).orElseThrow(() -> {
+        return userRepository.findFullUserByUsername(username).orElseThrow(() -> {
             throw new RuntimeException("User not found");
         });
     }
 
     @Transactional(readOnly = true)
     public FirmEntity getUserFirm() {
-        var user = userRepository.findByUsername(AuthService.getUsername()).orElseThrow(() -> {
+        var user = userRepository.findBriefUserByUsername(AuthService.getUsername()).orElseThrow(() -> {
             throw new RuntimeException("User not found");
         });
         return user.getFirmEntity();
+    }
+
+    @Transactional(readOnly = true)
+    public Set<AuthorityEntity> getUserAuthorities() {
+        var user = userRepository.findBriefUserByUsername(AuthService.getUsername()).orElseThrow(() -> {
+            throw new RuntimeException("User not found");
+        });
+        return user.getAuthorityEntities();
     }
 
     public Set<UserEntity> filter(String username, String email) {

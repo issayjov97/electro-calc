@@ -2,6 +2,9 @@ package com.example.application.ui.views.admin;
 
 import com.example.application.persistence.entity.AuthorityEntity;
 import com.example.application.persistence.entity.UserEntity;
+import com.example.application.ui.views.admin.user.UserForm;
+import com.example.application.ui.views.admin.user.events.DeleteEvent;
+import com.example.application.ui.views.admin.user.events.SaveEvent;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -49,7 +52,7 @@ class UserFormTest {
         userForm.getAllAuthorities().addAll(authorities);
 
         AtomicReference<UserEntity> savedContactRef = new AtomicReference<>(null);
-        userForm.addListener(UserForm.SaveEvent.class, e -> {
+        userForm.addListener(SaveEvent.class, e -> {
             savedContactRef.set(e.getItem());
         });
         userForm.getSaveButton().click();
@@ -73,7 +76,7 @@ class UserFormTest {
         UserEntity user = getUser();
 
         AtomicReference<UserEntity> deleteUserRef = new AtomicReference<>(null);
-        userForm.addListener(UserForm.DeleteEvent.class, e -> {
+        userForm.addListener(DeleteEvent.class, e -> {
             deleteUserRef.set(e.getItem());
         });
         userForm.setEntity(user);

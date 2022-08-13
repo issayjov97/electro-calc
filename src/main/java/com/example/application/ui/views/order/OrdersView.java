@@ -8,9 +8,13 @@ import com.example.application.service.FinancialService;
 import com.example.application.service.JobOrderService;
 import com.example.application.service.OrderService;
 import com.example.application.service.PdfGenerateServiceImpl;
+import com.example.application.ui.components.NotificationService;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.MainView;
 import com.example.application.ui.views.customer.CustomersView;
+import com.example.application.ui.views.order.events.DeleteEvent;
+import com.example.application.ui.views.order.events.SaveEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
@@ -99,7 +103,10 @@ public class OrdersView extends AbstractServicesView<OrderEntity, OrderEntity> i
         getItems().addComponentColumn((order) -> {
             final Button customerDetailsButton = new Button("Details");
             customerDetailsButton.addClickListener(e -> {
-                UI.getCurrent().navigate(CustomersView.class, order.getCustomerEntity().getId());
+                if (order.getCustomerEntity() != null)
+                    UI.getCurrent().navigate(CustomersView.class, order.getCustomerEntity().getId());
+                else
+                    NotificationService.error("Undefined customer");
             });
             return customerDetailsButton;
         }).setHeader("Customer");
@@ -140,9 +147,9 @@ public class OrdersView extends AbstractServicesView<OrderEntity, OrderEntity> i
 
     @Override
     protected void configureEvents() {
-        orderForm.addListener(OrderForm.SaveEvent.class, this::saveItem);
-        orderForm.addListener(OrderForm.CloseEvent.class, e -> closeEditor());
-        orderForm.addListener(OrderForm.DeleteEvent.class, this::deleteItem);
+        orderForm.addListener(SaveEvent.class, this::saveItem);
+        orderForm.addListener(CloseEvent.class, e -> closeEditor());
+        orderForm.addListener(DeleteEvent.class, this::deleteItem);
     }
 
     @Override
@@ -151,7 +158,7 @@ public class OrdersView extends AbstractServicesView<OrderEntity, OrderEntity> i
         orderForm.close();
     }
 
-    private void saveItem(OrderForm.SaveEvent event) {
+    private void saveItem(SaveEvent event) {
         orderService.save(event.getItem());
         updateList();
         closeEditor();
@@ -165,7 +172,7 @@ public class OrdersView extends AbstractServicesView<OrderEntity, OrderEntity> i
         getItems().setItems((orderService.getFirmOrders()));
     }
 
-    private void deleteItem(OrderForm.DeleteEvent event) {
+    private void deleteItem(DeleteEvent event) {
         orderService.delete(event.getItem());
         updateList();
         closeEditor();
@@ -177,7 +184,7 @@ public class OrdersView extends AbstractServicesView<OrderEntity, OrderEntity> i
     @Override
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter Long customerId) {
         if (customerId != null)
-            getItems().setItems(customerService.load(customerId).getOrders());
+            getItems().setItems(orderService.getCustomerOrders(customerId));
     }
 
     public TextField getFilterItem() {

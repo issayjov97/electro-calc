@@ -6,14 +6,14 @@ import com.example.application.persistence.entity.OfferEntity;
 import com.example.application.service.CustomerService;
 import com.example.application.service.JobOrderService;
 import com.example.application.service.PdfGenerateServiceImpl;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractForm;
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
+import com.example.application.ui.views.offer.events.DeleteEvent;
+import com.example.application.ui.views.offer.events.SaveEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -28,7 +28,6 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
-import com.vaadin.flow.shared.Registration;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -43,7 +42,7 @@ public class OfferForm extends AbstractForm<OfferEntity> {
     private final Select<JobOrderEntity> jobOrdersSelect    = new Select<>();
     private final Select<CustomerEntity> customersSelect    = new Select<>();
     private final JobOrderService        jobOrderService;
-    private final CustomerService customerService;
+    private final CustomerService        customerService;
 
     private final PdfGenerateServiceImpl pdfGenerateService;
 
@@ -100,14 +99,13 @@ public class OfferForm extends AbstractForm<OfferEntity> {
         SubMenu subItems = item.getSubMenu();
         Anchor download = new Anchor(new StreamResource("offer.pdf", (InputStreamFactory) () -> {
             Map<String, Object> data = new HashMap<>();
-            data.put("title","Offer" );
+            data.put("title", "Offer");
             data.put("customer", getEntity().getCustomerEntity());
             data.put("service", getEntity());
             data.put("patterns", getEntity().getPatterns());
             data.put("timestamp", LocalDateTime.now());
             return pdfGenerateService.exportReceiptPdf("service", data);
         }), "");
-
 
         download.add(new Button("Download", new Icon(VaadinIcon.DOWNLOAD_ALT)));
         download.getElement().setAttribute("download", true);
@@ -118,8 +116,8 @@ public class OfferForm extends AbstractForm<OfferEntity> {
     @Override
     protected HorizontalLayout createButtonsLayout() {
         saveButton.addClickListener(event -> validateAndSave());
-        deleteButton.addClickListener(event -> fireEvent(new OfferForm.DeleteEvent(this, getEntity())));
-        cancelButton.addClickListener(event -> fireEvent(new OfferForm.CloseEvent(this)));
+        deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
+        cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this, false)));
         return new HorizontalLayout(saveButton, deleteButton, cancelButton);
     }
 
@@ -145,42 +143,6 @@ public class OfferForm extends AbstractForm<OfferEntity> {
         }
     }
 
-    public static abstract class OfferFormEvent extends ComponentEvent<OfferForm> {
-        private OfferEntity item;
-
-        protected OfferFormEvent(OfferForm source, OfferEntity item) {
-            super(source, false);
-            this.item = item;
-        }
-
-        public OfferEntity getItem() {
-            return item;
-        }
-    }
-
-    public static class SaveEvent extends OfferFormEvent {
-        SaveEvent(OfferForm source, OfferEntity contact) {
-            super(source, contact);
-        }
-    }
-
-    public static class DeleteEvent extends OfferFormEvent {
-        DeleteEvent(OfferForm source, OfferEntity contact) {
-            super(source, contact);
-        }
-    }
-
-    public static class CloseEvent extends OfferFormEvent {
-        CloseEvent(OfferForm source) {
-            super(source, null);
-        }
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
-    }
-
     public BigDecimalField getMaterialsCost() {
         return materialsCost;
     }
@@ -192,17 +154,4 @@ public class OfferForm extends AbstractForm<OfferEntity> {
     public NumberField getWorkHours() {
         return workHours;
     }
-
-    public Dialog getDialog() {
-        return dialog;
-    }
-
-    public Button getSaveButton() {
-        return saveButton;
-    }
-
-    public Button getDeleteButton() {
-        return deleteButton;
-    }
-
 }

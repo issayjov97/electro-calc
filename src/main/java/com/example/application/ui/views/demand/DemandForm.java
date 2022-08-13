@@ -6,7 +6,10 @@ import com.example.application.persistence.entity.JobOrderEntity;
 import com.example.application.service.CustomerService;
 import com.example.application.service.JobOrderService;
 import com.example.application.service.PdfGenerateServiceImpl;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractForm;
+import com.example.application.ui.views.demand.events.DeleteEvent;
+import com.example.application.ui.views.demand.events.SaveEvent;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
@@ -118,8 +121,8 @@ public class DemandForm extends AbstractForm<DemandEntity> {
     @Override
     protected HorizontalLayout createButtonsLayout() {
         saveButton.addClickListener(event -> validateAndSave());
-        deleteButton.addClickListener(event -> fireEvent(new DemandForm.DeleteEvent(this, getEntity())));
-        cancelButton.addClickListener(event -> fireEvent(new DemandForm.CloseEvent(this)));
+        deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
+        cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this, false)));
         return new HorizontalLayout(saveButton, deleteButton, cancelButton);
     }
 
@@ -153,42 +156,6 @@ public class DemandForm extends AbstractForm<DemandEntity> {
         }
     }
 
-    public static abstract class OfferFormEvent extends ComponentEvent<DemandForm> {
-        private DemandEntity item;
-
-        protected OfferFormEvent(DemandForm source, DemandEntity item) {
-            super(source, false);
-            this.item = item;
-        }
-
-        public DemandEntity getItem() {
-            return item;
-        }
-    }
-
-    public static class SaveEvent extends OfferFormEvent {
-        SaveEvent(DemandForm source, DemandEntity contact) {
-            super(source, contact);
-        }
-    }
-
-    public static class DeleteEvent extends OfferFormEvent {
-        DeleteEvent(DemandForm source, DemandEntity contact) {
-            super(source, contact);
-        }
-    }
-
-    public static class CloseEvent extends OfferFormEvent {
-        CloseEvent(DemandForm source) {
-            super(source, null);
-        }
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
-    }
-
     public BigDecimalField getMaterialsCost() {
         return materialsCost;
     }
@@ -200,17 +167,4 @@ public class DemandForm extends AbstractForm<DemandEntity> {
     public NumberField getWorkHours() {
         return workHours;
     }
-
-    public Dialog getDialog() {
-        return dialog;
-    }
-
-    public Button getSaveButton() {
-        return saveButton;
-    }
-
-    public Button getDeleteButton() {
-        return deleteButton;
-    }
-
 }

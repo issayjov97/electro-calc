@@ -1,6 +1,7 @@
 package com.example.application.service;
 
 import com.example.application.persistence.entity.FirmEntity;
+import com.example.application.persistence.entity.PatternEntity;
 import com.example.application.persistence.repository.FirmRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -10,9 +11,11 @@ import java.util.List;
 
 @Service
 public class FirmService implements CrudService<FirmEntity> {
+    private final UserService userService;
     private final FirmRepository firmRepository;
 
-    public FirmService(FirmRepository firmRepository) {
+    public FirmService(UserService userService, FirmRepository firmRepository) {
+        this.userService = userService;
         this.firmRepository = firmRepository;
     }
 
@@ -47,4 +50,25 @@ public class FirmService implements CrudService<FirmEntity> {
         return CrudService.super.loadAll();
     }
 
+    @Transactional(readOnly = true)
+    public FirmEntity getFirmWithDefaultPatterns() {
+        var firm  = userService.getUserFirm();
+        return firmRepository.getById(firm.getId());
+    }
+
+    @Transactional
+    public void deleteFirmWithDefaultPattern(PatternEntity patternEntity) {
+        var firm  = userService.getUserFirm();
+        FirmEntity firmEntity = firmRepository.getById(firm.getId());
+        firmEntity.removeDefaultPattern(patternEntity);
+        firmRepository.saveAndFlush(firmEntity);
+    }
+
+    @Transactional
+    public void deleteFirmWithCustomPattern(PatternEntity patternEntity) {
+        var firm  = userService.getUserFirm();
+        FirmEntity firmEntity = firmRepository.getById(firm.getId());
+        firmEntity.removePattern(patternEntity);
+        firmRepository.saveAndFlush(firmEntity);
+    }
 }

@@ -24,7 +24,6 @@ import java.io.IOException;
 
 
 public class DemandDocumentsDialog extends DocumentsDialog<DemandEntity> {
-    private DemandEntity demandEntity;
 
     public DemandDocumentsDialog(FileRepository fileRepository) {
         super(fileRepository);
@@ -55,7 +54,7 @@ public class DemandDocumentsDialog extends DocumentsDialog<DemandEntity> {
 
             final Span deleteSpan = new Span("Delete");
             deleteSpan.addClickListener(e -> {
-                demandEntity.removeFileEntity(fileEntity);
+                getEntity().removeFileEntity(fileEntity);
                 fileRepository.delete(fileEntity);
                 updateList();
             });
@@ -81,7 +80,7 @@ public class DemandDocumentsDialog extends DocumentsDialog<DemandEntity> {
 
             final Span deleteSpan = new Span("Delete");
             deleteSpan.addClickListener(e -> {
-                demandEntity.removeFileEntity(fileEntity);
+                getEntity().removeFileEntity(fileEntity);
                 fileRepository.delete(fileEntity);
                 updateList();
             });
@@ -100,7 +99,7 @@ public class DemandDocumentsDialog extends DocumentsDialog<DemandEntity> {
                 fileEntity.setName(attachmentName);
                 fileEntity.setData(IOUtils.toByteArray(memoryBuffer.getInputStream()));
                 fileEntity.setType(memoryBuffer.getFileData().getMimeType());
-                fileEntity.setDemandEntity(demandEntity);
+                fileEntity.setDemandEntity(getEntity());
                 fileRepository.saveAndFlush(fileEntity);
                 updateList();
             } catch (IOException e) {
@@ -112,16 +111,6 @@ public class DemandDocumentsDialog extends DocumentsDialog<DemandEntity> {
 
     @Override
     protected void updateList() {
-        filesGrid.getDataProvider().refreshAll();
-        filesGrid.setItems(fileRepository.findByOfferEntityId(demandEntity.getId()));
-    }
-
-    public DemandEntity getOfferEntity() {
-        return demandEntity;
-    }
-
-    public void setOfferEntity(DemandEntity demandEntity) {
-        this.demandEntity = demandEntity;
-        updateList();
+        filesGrid.setItems(fileRepository.findByDemandEntityId(getEntity().getId()));
     }
 }

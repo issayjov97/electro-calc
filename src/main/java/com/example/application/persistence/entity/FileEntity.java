@@ -1,7 +1,7 @@
 package com.example.application.persistence.entity;
 
 import javax.persistence.Entity;
-import javax.persistence.Lob;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -12,6 +12,7 @@ public class FileEntity extends AbstractEntity {
     private String      name;
     private String      type;
     private byte[]      data;
+
     @ManyToOne
     private OrderEntity orderEntity;
 

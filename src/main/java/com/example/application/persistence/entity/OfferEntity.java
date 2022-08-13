@@ -11,7 +11,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import java.util.Collection;
 import java.util.Set;
 
 @Entity
@@ -27,9 +26,7 @@ public class OfferEntity extends AbstractServiceEntity {
     @ManyToOne
     private FirmEntity firmEntity;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {
-            CascadeType.MERGE
-    })
+    @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
             name = "offer_pattern",
             joinColumns = @JoinColumn(name = "offer_id"),
@@ -39,8 +36,7 @@ public class OfferEntity extends AbstractServiceEntity {
     @OneToMany(
             mappedBy = "offerEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER
+            cascade = CascadeType.ALL
     )
     private Set<FileEntity> offerFiles;
 
@@ -55,15 +51,15 @@ public class OfferEntity extends AbstractServiceEntity {
         fileEntity.setOfferEntity(null);
     }
 
-    public void addPatterns(Collection<PatternEntity> patternEntities) {
-        this.offerPatterns.addAll(patternEntities);
-        patternEntities.forEach(it -> it.getOffers().add(this));
+    public void addPatterns(PatternEntity patternEntity) {
+        this.offerPatterns.add(patternEntity);
+        patternEntity.getOffers().add(this);
     }
 
 
-    public void removePatter(PatternEntity patternEntity) {
+    public void removePattern(PatternEntity patternEntity) {
         this.offerPatterns.remove(patternEntity);
-        patternEntity.getOrders().remove(this);
+        patternEntity.getOffers().remove(this);
     }
 
     public FirmEntity getFirmEntity() {
@@ -111,6 +107,10 @@ public class OfferEntity extends AbstractServiceEntity {
 
     public void setJobOrderEntity(JobOrderEntity jobOrderEntity) {
         this.jobOrderEntity = jobOrderEntity;
+    }
+
+    public Set<FileEntity> getOfferFiles() {
+        return offerFiles;
     }
 
     @Override

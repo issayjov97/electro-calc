@@ -6,14 +6,16 @@ import com.example.application.persistence.entity.OrderEntity;
 import com.example.application.service.CustomerService;
 import com.example.application.service.JobOrderService;
 import com.example.application.service.PdfGenerateServiceImpl;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractForm;
+import com.example.application.ui.views.order.events.DeleteEvent;
+import com.example.application.ui.views.order.events.SaveEvent;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -100,7 +102,7 @@ public class OrderForm extends AbstractForm<OrderEntity> {
 
         Anchor download = new Anchor(new StreamResource("order.pdf", () -> {
             Map<String, Object> data = new HashMap<>();
-            data.put("title","Order" );
+            data.put("title", "Order");
             data.put("customer", getEntity().getCustomerEntity());
             data.put("service", getEntity());
             data.put("patterns", getEntity().getPatterns());
@@ -117,8 +119,8 @@ public class OrderForm extends AbstractForm<OrderEntity> {
     @Override
     protected HorizontalLayout createButtonsLayout() {
         saveButton.addClickListener(event -> validateAndSave());
-        deleteButton.addClickListener(event -> fireEvent(new OrderForm.DeleteEvent(this, getEntity())));
-        cancelButton.addClickListener(event -> fireEvent(new OrderForm.CloseEvent(this)));
+        deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
+        cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this, false)));
         return new HorizontalLayout(saveButton, deleteButton, cancelButton);
     }
 
@@ -144,42 +146,6 @@ public class OrderForm extends AbstractForm<OrderEntity> {
         customersSelect.setItems(customerService.getFirmCustomers());
     }
 
-    public static abstract class OrderFormEvent extends ComponentEvent<OrderForm> {
-        private final OrderEntity item;
-
-        protected OrderFormEvent(OrderForm source, OrderEntity item) {
-            super(source, false);
-            this.item = item;
-        }
-
-        public OrderEntity getItem() {
-            return item;
-        }
-    }
-
-    public static class SaveEvent extends OrderFormEvent {
-        SaveEvent(OrderForm source, OrderEntity contact) {
-            super(source, contact);
-        }
-    }
-
-    public static class DeleteEvent extends OrderFormEvent {
-        DeleteEvent(OrderForm source, OrderEntity contact) {
-            super(source, contact);
-        }
-    }
-
-    public static class CloseEvent extends OrderFormEvent {
-        CloseEvent(OrderForm source) {
-            super(source, null);
-        }
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
-    }
-
     public BigDecimalField getMaterialsCost() {
         return materialsCost;
     }
@@ -191,17 +157,4 @@ public class OrderForm extends AbstractForm<OrderEntity> {
     public NumberField getWorkHours() {
         return workHours;
     }
-
-    public Dialog getDialog() {
-        return dialog;
-    }
-
-    public Button getSaveButton() {
-        return saveButton;
-    }
-
-    public Button getDeleteButton() {
-        return deleteButton;
-    }
-
 }

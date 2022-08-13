@@ -4,36 +4,57 @@ import com.example.application.service.FinancialService;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "patterns")
 public class PatternEntity extends VATEntity {
 
+    private String PLU;
     private String name;
     private String description;
     private Double duration = 0.0;
     private String measureUnit;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+
+    @ManyToOne
     private FirmEntity firmEntity;
 
+    @ManyToMany(mappedBy = "defaultPatterns")
+    Set<FirmEntity> firmEntities = new HashSet<>();
+
     @ManyToMany(mappedBy = "orderPatterns")
-    List<OrderEntity> orders;
+    Set<OrderEntity> orders = new HashSet<>();
 
     @ManyToMany(mappedBy = "offerPatterns")
-    List<OfferEntity> offers;
+    Set<OfferEntity> offers = new HashSet<>();
 
     @ManyToMany(mappedBy = "demandPatterns")
-    List<DemandEntity> demands;
+    Set<DemandEntity> demands = new HashSet<>();
 
     @ManyToMany(mappedBy = "imagePatterns")
     List<ImageEntity> patternImages;
 
+    public Set<FirmEntity> getFirmEntities() {
+        return firmEntities;
+    }
+
+    public void setFirmEntities(Set<FirmEntity> firmEntities) {
+        this.firmEntities = firmEntities;
+    }
+
+    public String getPLU() {
+        return PLU;
+    }
+
+    public void setPLU(String PLU) {
+        this.PLU = PLU;
+    }
 
     public FirmEntity getFirmEntity() {
         return firmEntity;
@@ -67,11 +88,11 @@ public class PatternEntity extends VATEntity {
         this.duration = duration;
     }
 
-    public List<OrderEntity> getOrders() {
+    public Set<OrderEntity> getOrders() {
         return orders;
     }
 
-    public void setOrders(List<OrderEntity> orders) {
+    public void setOrders(Set<OrderEntity> orders) {
         this.orders = orders;
     }
 
@@ -83,21 +104,22 @@ public class PatternEntity extends VATEntity {
         this.measureUnit = measureUnit;
     }
 
-    public List<OfferEntity> getOffers() {
+    public Set<OfferEntity> getOffers() {
         return offers;
     }
 
-    public void setOffers(List<OfferEntity> offers) {
+    public void setOffers(Set<OfferEntity> offers) {
         this.offers = offers;
     }
 
-    public List<DemandEntity> getDemands() {
+    public Set<DemandEntity> getDemands() {
         return demands;
     }
 
-    public void setDemands(List<DemandEntity> demands) {
+    public void setDemands(Set<DemandEntity> demands) {
         this.demands = demands;
     }
+
 
     @Override
     public void calculate() {
@@ -113,4 +135,30 @@ public class PatternEntity extends VATEntity {
     }
 
 
+    public static boolean isDefaultPattern(PatternEntity patternEntity) {
+        return patternEntity.getId() != null && patternEntity.getFirmEntity() == null;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PatternEntity that = (PatternEntity) o;
+
+        if (PLU != null ? !PLU.equals(that.PLU) : that.PLU != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        return duration != null ? duration.equals(that.duration) : that.duration == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = PLU != null ? PLU.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (duration != null ? duration.hashCode() : 0);
+        return result;
+    }
 }

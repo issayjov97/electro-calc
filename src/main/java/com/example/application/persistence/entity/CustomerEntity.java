@@ -22,24 +22,21 @@ public class CustomerEntity extends AbstractEntity {
     @OneToMany(
             mappedBy = "customerEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER
+            cascade = CascadeType.ALL
     )
     private Set<OrderEntity> orders;
 
     @OneToMany(
             mappedBy = "customerEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER
+            cascade = CascadeType.ALL
     )
     private Set<OfferEntity> offers;
 
     @OneToMany(
             mappedBy = "customerEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER
+            cascade = CascadeType.ALL
     )
     private Set<DemandEntity> demands;
 

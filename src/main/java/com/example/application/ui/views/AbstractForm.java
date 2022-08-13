@@ -2,24 +2,27 @@ package com.example.application.ui.views;
 
 import com.example.application.persistence.entity.AbstractEntity;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEvent;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.shared.Registration;
 
 
-public abstract class AbstractForm<T extends AbstractEntity> extends Div {
-    protected final Binder<T> binder;
+public abstract class AbstractForm<E extends AbstractEntity> extends Div {
+    protected final Binder<E> binder;
     protected final Dialog    dialog;
     protected final H2        headline;
     protected final Button    saveButton;
     protected final Button    cancelButton;
     protected final Button    deleteButton;
-    private         T         entity;
+    private         E         entity;
 
-    public AbstractForm(Binder<T> validator) {
+    public AbstractForm(Binder<E> validator) {
         this.headline = new H2();
         this.dialog = new Dialog();
         this.binder = validator;
@@ -41,7 +44,7 @@ public abstract class AbstractForm<T extends AbstractEntity> extends Div {
         dialog.close();
     }
 
-    public void setEntity(T entity) {
+    public void setEntity(E entity) {
         this.entity = entity;
         binder.readBean(entity);
     }
@@ -55,7 +58,7 @@ public abstract class AbstractForm<T extends AbstractEntity> extends Div {
         return dialog;
     }
 
-    public T getEntity() {
+    public E getEntity() {
         return entity;
     }
 
@@ -70,4 +73,10 @@ public abstract class AbstractForm<T extends AbstractEntity> extends Div {
     public Button getDeleteButton() {
         return deleteButton;
     }
+
+    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
+                                                                  ComponentEventListener<T> listener) {
+        return getEventBus().addListener(eventType, listener);
+    }
+
 }

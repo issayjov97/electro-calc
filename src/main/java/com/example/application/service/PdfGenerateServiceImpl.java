@@ -26,7 +26,7 @@ public class PdfGenerateServiceImpl {
         this.templateEngine = templateEngine;
     }
 
-    public void generatePdfFile(String templateName, Map<String, Object> data, String pdfFileName) {
+    public void generatePdfFile(String templateName, Map<String, Object> data) {
         Context context = new Context();
         context.setVariables(data);
 

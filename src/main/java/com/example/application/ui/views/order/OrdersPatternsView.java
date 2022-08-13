@@ -8,7 +8,6 @@ import com.example.application.service.UserService;
 import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.MainView;
 import com.example.application.ui.views.ServiceDetailsDialog;
-import com.google.common.collect.Sets;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
@@ -56,9 +55,10 @@ public class OrdersPatternsView extends AbstractServicesView<PatternEntity, Orde
         getItems().addComponentColumn((patternEntity) -> {
             final Button deleteButton = new Button("Delete");
             deleteButton.addClickListener(e -> {
+                this.orderEntity = orderService.getOrder(orderEntity.getId());
                 orderEntity.getPatterns().remove(patternEntity);
                 orderService.save(orderEntity);
-                updateList();
+                getItems().setItems(orderEntity.getPatterns());
             });
             return deleteButton;
         }).setHeader("Patterns");
@@ -68,7 +68,7 @@ public class OrdersPatternsView extends AbstractServicesView<PatternEntity, Orde
     protected HorizontalLayout getToolBar() {
         span.setClassName("headline");
         addButton.addClickListener(e -> {
-            orderDetailsDialog.setPatterns(Sets.difference(patternService.getAll(userService.getUserFirm()), orderEntity.getPatterns()));
+            orderDetailsDialog.setPatterns(patternService.getFirmPatterns());
             getItems().asSingleSelect().clear();
             orderDetailsDialog.open();
         });
@@ -77,7 +77,9 @@ public class OrdersPatternsView extends AbstractServicesView<PatternEntity, Orde
         toolbar.setAlignItems(Alignment.BASELINE);
         toolbar.getStyle().set("max-width", "100%");
         toolbar.addClassName("toolbar");
-        return new HorizontalLayout(span, toolbar);
+        HorizontalLayout horizontalLayout = new HorizontalLayout(span, toolbar);
+        horizontalLayout.setAlignItems(Alignment.BASELINE);
+        return horizontalLayout;
     }
 
     @Override
@@ -102,9 +104,8 @@ public class OrdersPatternsView extends AbstractServicesView<PatternEntity, Orde
         notification.setPosition(Notification.Position.TOP_CENTER);
     }
 
-
     public void updateList() {
-        getItems().setItems(orderEntity.getPatterns());
+        getItems().setItems(orderService.getOrder(orderEntity.getId()).getPatterns());
     }
 
     @Override

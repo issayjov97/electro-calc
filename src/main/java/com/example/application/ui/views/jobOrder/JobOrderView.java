@@ -3,9 +3,12 @@ package com.example.application.ui.views.jobOrder;
 import com.example.application.persistence.entity.JobOrderEntity;
 import com.example.application.service.CustomerService;
 import com.example.application.service.JobOrderService;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.MainView;
 import com.example.application.ui.views.customer.CustomersView;
+import com.example.application.ui.views.jobOrder.events.DeleteEvent;
+import com.example.application.ui.views.jobOrder.events.SaveEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
@@ -79,10 +82,10 @@ public class JobOrderView extends AbstractServicesView<JobOrderEntity, JobOrderE
             return patternDetailsButton;
         }).setHeader("Demands");
 
-        getItems().addComponentColumn((demand) -> {
+        getItems().addComponentColumn((jobOrder) -> {
             final Button customerDetailsButton = new Button("Details");
             customerDetailsButton.addClickListener(e -> {
-                UI.getCurrent().navigate(CustomersView.class, demand.getCustomerEntity().getId());
+                UI.getCurrent().navigate("offers", new QueryParameters(Map.of("jobOrderId", List.of(String.valueOf(jobOrder.getId())))));
             });
             return customerDetailsButton;
         }).setHeader("Offers");
@@ -114,9 +117,9 @@ public class JobOrderView extends AbstractServicesView<JobOrderEntity, JobOrderE
 
     @Override
     protected void configureEvents() {
-        jobOrderForm.addListener(JobOrderForm.SaveEvent.class, this::saveItem);
-        jobOrderForm.addListener(JobOrderForm.CloseEvent.class, e -> closeEditor());
-        jobOrderForm.addListener(JobOrderForm.DeleteEvent.class, this::deleteItem);
+        jobOrderForm.addListener(SaveEvent.class, this::saveItem);
+        jobOrderForm.addListener(CloseEvent.class, e -> closeEditor());
+        jobOrderForm.addListener(DeleteEvent.class, this::deleteItem);
     }
 
     @Override
@@ -125,7 +128,7 @@ public class JobOrderView extends AbstractServicesView<JobOrderEntity, JobOrderE
         jobOrderForm.close();
     }
 
-    private void saveItem(JobOrderForm.SaveEvent event) {
+    private void saveItem(SaveEvent event) {
         jobOrderService.save(event.getItem());
         updateList();
         closeEditor();
@@ -139,7 +142,7 @@ public class JobOrderView extends AbstractServicesView<JobOrderEntity, JobOrderE
         getItems().setItems((jobOrderService.getFirmJobOrders()));
     }
 
-    private void deleteItem(JobOrderForm.DeleteEvent event) {
+    private void deleteItem(DeleteEvent event) {
         jobOrderService.delete(event.getItem());
         updateList();
         closeEditor();

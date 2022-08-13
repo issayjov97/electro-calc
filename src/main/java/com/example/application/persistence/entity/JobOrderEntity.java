@@ -27,16 +27,14 @@ public class JobOrderEntity extends AbstractEntity {
     @OneToMany(
             mappedBy = "jobOrderEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER
+            cascade = CascadeType.ALL
     )
     private Set<OfferEntity> offerEntities;
 
     @OneToMany(
             mappedBy = "jobOrderEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER
+            cascade = CascadeType.ALL
     )
     private Set<DemandEntity> demandEntities;
 

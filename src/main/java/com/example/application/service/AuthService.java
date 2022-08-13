@@ -18,4 +18,8 @@ public class AuthService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
     }
+
+    public static boolean isAdmin() {
+        return getAuthorities().stream().anyMatch(it -> it.equals("ADMIN"));
+    }
 }

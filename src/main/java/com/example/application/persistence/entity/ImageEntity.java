@@ -18,9 +18,7 @@ public class ImageEntity extends AbstractEntity {
     private String description;
     @Lob
     private byte[] data;
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {
-            CascadeType.MERGE
-    })
+    @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
             name = "image_pattern",
             joinColumns = @JoinColumn(name = "image_id"),

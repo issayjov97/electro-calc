@@ -12,6 +12,8 @@ public class PatternMapper {
         patternEntity.setDescription(source.getDescription());
         patternEntity.setDuration(source.getDuration());
         patternEntity.setPriceWithoutVAT(source.getPriceWithoutVAT());
+        patternEntity.setPLU(source.getPLU());
+        patternEntity.setMeasureUnit(source.getMeasureUnit());
         patternEntity.setFirmEntity(firmEntity);
         return patternEntity;
     }

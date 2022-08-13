@@ -1,10 +1,11 @@
-package com.example.application.ui.views.admin;
+package com.example.application.ui.views.admin.firm;
 
 import com.example.application.persistence.entity.FirmEntity;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractForm;
+import com.example.application.ui.views.admin.firm.events.DeleteEvent;
+import com.example.application.ui.views.admin.firm.events.SaveEvent;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -12,7 +13,6 @@ import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
-import com.vaadin.flow.shared.Registration;
 
 
 public class FirmForm extends AbstractForm<FirmEntity> {
@@ -40,14 +40,14 @@ public class FirmForm extends AbstractForm<FirmEntity> {
                         name -> name.length() >= 4,
                         "Name must contain at least 6 characters"
                 ).bind(FirmEntity::getName, FirmEntity::setName);
-        binder.bind(street,"street");
-        binder.bind(postCode,"postCode");
-        binder.bind(state,"state");
-        binder.bind(city,"city");
-        binder.bind(CIN,"CIN");
-        binder.bind(VATIN,"VATIN");
-        binder.bind(phone,"phone");
-        binder.bind(email,"email");
+        binder.bind(street, "street");
+        binder.bind(postCode, "postCode");
+        binder.bind(state, "state");
+        binder.bind(city, "city");
+        binder.bind(CIN, "CIN");
+        binder.bind(VATIN, "VATIN");
+        binder.bind(phone, "phone");
+        binder.bind(email, "email");
     }
 
     @Override
@@ -71,7 +71,7 @@ public class FirmForm extends AbstractForm<FirmEntity> {
         buttonsMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         saveButton.addClickListener(event -> validateAndSave());
         deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
-        cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this)));
+        cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this, false)));
         buttonsMenu.add(saveButton, deleteButton, cancelButton);
         return buttonsMenu;
     }
@@ -84,41 +84,5 @@ public class FirmForm extends AbstractForm<FirmEntity> {
         } catch (ValidationException e) {
             e.printStackTrace();
         }
-    }
-
-    public static abstract class FirmFormEvent extends ComponentEvent<FirmForm> {
-        private final FirmEntity item;
-
-        protected FirmFormEvent(FirmForm source, FirmEntity item) {
-            super(source, false);
-            this.item = item;
-        }
-
-        public FirmEntity getItem() {
-            return item;
-        }
-    }
-
-    public static class SaveEvent extends FirmFormEvent {
-        SaveEvent(FirmForm source, FirmEntity contact) {
-            super(source, contact);
-        }
-    }
-
-    public static class DeleteEvent extends FirmFormEvent {
-        DeleteEvent(FirmForm source, FirmEntity contact) {
-            super(source, contact);
-        }
-    }
-
-    public static class CloseEvent extends FirmFormEvent {
-        CloseEvent(FirmForm source) {
-            super(source, null);
-        }
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
     }
 }

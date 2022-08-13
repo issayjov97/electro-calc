@@ -6,7 +6,6 @@ import com.example.application.service.OrderService;
 import com.example.application.service.PatternService;
 import com.example.application.service.UserService;
 import com.example.application.ui.views.ServiceDetailsDialog;
-import com.example.application.ui.views.offer.OrderDetailsDialog;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.ListDataProvider;

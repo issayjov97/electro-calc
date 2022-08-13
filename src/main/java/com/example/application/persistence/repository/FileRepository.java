@@ -9,4 +9,5 @@ public interface FileRepository extends JpaRepository<FileEntity, Long> {
 
     Set<FileEntity> findByOrderEntityId(Long id);
     Set<FileEntity> findByOfferEntityId(Long id);
+    Set<FileEntity> findByDemandEntityId(Long id);
 }

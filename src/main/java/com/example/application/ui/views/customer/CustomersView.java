@@ -1,25 +1,33 @@
 package com.example.application.ui.views.customer;
 
 import com.example.application.persistence.entity.CustomerEntity;
+import com.example.application.predicate.CustomerSpecification;
 import com.example.application.service.CustomerService;
+import com.example.application.service.UserService;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.MainView;
+import com.example.application.ui.views.customer.events.DeleteEvent;
+import com.example.application.ui.views.customer.events.SaveEvent;
 import com.example.application.ui.views.order.OrdersView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import org.vaadin.klaudeta.PaginatedGrid;
+
+import java.util.Set;
 
 
 @PageTitle("Customers")
@@ -29,17 +37,18 @@ public class CustomersView extends AbstractServicesView<CustomerEntity, Customer
     private final TextField       nameFilter   = new TextField();
     private final TextField       emailFilter  = new TextField();
     private final CustomerService customerService;
+    private final UserService     userService;
     private final CustomerForm    customerForm;
     private final Button          addButton    = new Button("Add customer");
     private final Button          filterButton = new Button("Filter");
     private final Span            span         = new Span("Customers");
 
-    public CustomersView(CustomerService customerService) {
-        super(new Grid<>(CustomerEntity.class), customerService);
+    public CustomersView(CustomerService customerService, UserService userService) {
+        super(new PaginatedGrid<>(CustomerEntity.class), customerService);
         this.customerService = customerService;
+        this.userService = userService;
         customerForm = new CustomerForm();
-        addClassName("customers-view");
-        setSizeFull();
+        addClassName("paging-view");
         configureGrid();
         configureForm();
         configureEvents();
@@ -71,7 +80,17 @@ public class CustomersView extends AbstractServicesView<CustomerEntity, Customer
             });
             return editButton;
         }).setHeader("Orders");
-        updateList();
+
+        DataProvider<CustomerEntity, Void> dataProvider =
+                DataProvider.fromCallbacks(
+                        query -> {
+                            int offset = query.getOffset();
+                            int limit = query.getLimit();
+                            Set<CustomerEntity> items = customerService.filter(getSpecification(), offset, limit);
+                            return items.stream();
+                        },
+                        query -> Math.toIntExact(customerService.countAnyMatching(getSpecification())));
+        getItems().setDataProvider(dataProvider);
     }
 
     @Override
@@ -94,7 +113,7 @@ public class CustomersView extends AbstractServicesView<CustomerEntity, Customer
             customerForm.open("New customer");
         });
 
-        filterButton.addClickListener(e -> getItems().setItems(customerService.filter(nameFilter.getValue(), emailFilter.getValue())));
+        filterButton.addClickListener(e -> getItems().setItems(customerService.filter(getSpecification())));
 
         HorizontalLayout filterPart = new HorizontalLayout(nameFilter, emailFilter, filterButton, addButton);
         filterPart.addClassName("filterPart");
@@ -105,9 +124,9 @@ public class CustomersView extends AbstractServicesView<CustomerEntity, Customer
 
     @Override
     protected void configureEvents() {
-        customerForm.addListener(CustomerForm.SaveEvent.class, this::saveItem);
-        customerForm.addListener(CustomerForm.CloseEvent.class, e -> closeEditor());
-        customerForm.addListener(CustomerForm.DeleteEvent.class, this::deleteItem);
+        customerForm.addListener(SaveEvent.class, this::saveItem);
+        customerForm.addListener(CloseEvent.class, e -> closeEditor());
+        customerForm.addListener(DeleteEvent.class, this::deleteItem);
     }
 
     @Override
@@ -116,7 +135,7 @@ public class CustomersView extends AbstractServicesView<CustomerEntity, Customer
         customerForm.close();
     }
 
-    private void saveItem(CustomerForm.SaveEvent event) {
+    private void saveItem(SaveEvent event) {
         customerService.save(event.getItem());
         updateList();
         closeEditor();
@@ -130,7 +149,7 @@ public class CustomersView extends AbstractServicesView<CustomerEntity, Customer
         getItems().setItems(customerService.findFirmCustomers());
     }
 
-    private void deleteItem(CustomerForm.DeleteEvent event) {
+    private void deleteItem(DeleteEvent event) {
         customerService.delete(event.getItem());
         updateList();
         closeEditor();
@@ -144,6 +163,10 @@ public class CustomersView extends AbstractServicesView<CustomerEntity, Customer
         if (customerId != null) {
             this.getItems().setItems(customerService.load(customerId));
         }
+    }
+
+    private CustomerSpecification getSpecification() {
+        return new CustomerSpecification(userService.getUserFirm().getId(), emailFilter.getValue(), nameFilter.getValue());
     }
 
     public TextField getNameFilter() {

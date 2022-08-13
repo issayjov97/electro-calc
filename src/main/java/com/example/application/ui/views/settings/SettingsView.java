@@ -1,14 +1,14 @@
 package com.example.application.ui.views.settings;
 
+import com.example.application.service.AuthService;
 import com.example.application.ui.views.MainView;
-import com.example.application.ui.views.admin.FirmsView;
-import com.example.application.ui.views.admin.UsersView;
+import com.example.application.ui.views.admin.firm.FirmsView;
+import com.example.application.ui.views.admin.user.UsersView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
-import com.vaadin.flow.component.tabs.TabVariant;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.ParentLayout;
@@ -48,16 +48,17 @@ public class SettingsView extends VerticalLayout implements RouterLayout {
                 new Span("Firms")
         );
 
-        Tabs tabs = new Tabs(profile, accountSecurity, roles, users, firms);
+        Tabs tabs = new Tabs(profile, accountSecurity);
 
-        for (Tab tab : new Tab[]{profile, accountSecurity, roles, users, firms}) {
-            tab.addThemeVariants(TabVariant.LUMO_ICON_ON_TOP);
-        }
+        if (AuthService.isAdmin())
+            tabs.add(roles, users, firms);
+
         tabs.addSelectedChangeListener(e -> {
             setContent(tabs.getSelectedTab());
         });
         setContent(tabs.getSelectedTab());
         add(tabs);
+        tabs.setSelectedTab(profile);
     }
 
     private void setContent(Tab tab) {

@@ -1,9 +1,10 @@
 package com.example.application.ui.views.patern;
 
 import com.example.application.persistence.entity.PatternEntity;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractForm;
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
+import com.example.application.ui.views.patern.events.DeleteEvent;
+import com.example.application.ui.views.patern.events.SaveEvent;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -13,10 +14,10 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
-import com.vaadin.flow.shared.Registration;
 
 
 public class PatternForm extends AbstractForm<PatternEntity> {
+    private final TextField       PLUField             = new TextField("PLU");
     private final TextField       nameField            = new TextField("Name");
     private final TextArea        descriptionField     = new TextArea("Description");
     private final NumberField     durationField        = new NumberField("Duration");
@@ -35,6 +36,12 @@ public class PatternForm extends AbstractForm<PatternEntity> {
 
     @Override
     protected void setBinder() {
+        binder.forField(PLUField).asRequired("PLU is required")
+                .withValidator(
+                        name -> name.length() >= 6,
+                        "PLU must contain at least 6 symbols "
+                )
+                .bind(PatternEntity::getPLU, PatternEntity::setPLU);
         binder.forField(nameField).asRequired("Name is required")
                 .withValidator(
                         name -> name.length() >= 6,
@@ -53,7 +60,7 @@ public class PatternForm extends AbstractForm<PatternEntity> {
 
     @Override
     protected VerticalLayout createDialogLayout() {
-        VerticalLayout fieldLayout = new VerticalLayout(nameField, descriptionField, durationField, priceWithoutVatField);
+        VerticalLayout fieldLayout = new VerticalLayout(PLUField, nameField, descriptionField, durationField, priceWithoutVatField);
         fieldLayout.setSpacing(false);
         fieldLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
         HorizontalLayout buttonLayout = createButtonsLayout();
@@ -69,7 +76,7 @@ public class PatternForm extends AbstractForm<PatternEntity> {
     protected HorizontalLayout createButtonsLayout() {
         saveButton.addClickListener(event -> validateAndSave());
         deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
-        cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this)));
+        cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this, false)));
         return new HorizontalLayout(saveButton, deleteButton, cancelButton);
     }
 
@@ -77,47 +84,10 @@ public class PatternForm extends AbstractForm<PatternEntity> {
     protected void validateAndSave() {
         try {
             binder.writeBean(getEntity());
-            System.out.println("Validated item: " + getEntity());
             fireEvent(new SaveEvent(this, getEntity()));
         } catch (ValidationException e) {
             e.printStackTrace();
         }
-    }
-
-    public static abstract class PatternFormEvent extends ComponentEvent<PatternForm> {
-        private final PatternEntity item;
-
-        protected PatternFormEvent(PatternForm source, PatternEntity item) {
-            super(source, false);
-            this.item = item;
-        }
-
-        public PatternEntity getItem() {
-            return item;
-        }
-    }
-
-    public static class SaveEvent extends PatternFormEvent {
-        SaveEvent(PatternForm source, PatternEntity item) {
-            super(source, item);
-        }
-    }
-
-    public static class DeleteEvent extends PatternFormEvent {
-        DeleteEvent(PatternForm source, PatternEntity item) {
-            super(source, item);
-        }
-    }
-
-    public static class CloseEvent extends PatternFormEvent {
-        CloseEvent(PatternForm source) {
-            super(source, null);
-        }
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
     }
 
     public TextField getNameField() {

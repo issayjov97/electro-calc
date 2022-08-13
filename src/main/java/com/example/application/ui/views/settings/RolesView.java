@@ -2,6 +2,7 @@ package com.example.application.ui.views.settings;
 
 import com.example.application.persistence.entity.AuthorityEntity;
 import com.example.application.service.AuthorityService;
+import com.example.application.ui.events.CloseEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -52,7 +53,7 @@ public class RolesView extends Div {
     }
 
     private void configureEvents() {
-        addAuthorityDialog.addListener(AddAuthorityDialog.CloseEvent.class, e -> {
+        addAuthorityDialog.addListener(CloseEvent.class, e -> {
             updateList();
         });
     }

@@ -1,6 +1,7 @@
 package com.example.application.ui.views.patern;
 
 import com.example.application.persistence.entity.PatternEntity;
+import com.example.application.ui.views.patern.events.SaveEvent;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -27,7 +28,7 @@ class PatternFormTest {
         patternForm.getPriceWithoutVatField().setValue(priceWithoutVAT);
 
         AtomicReference<PatternEntity> savedContactRef = new AtomicReference<>(null);
-        patternForm.addListener(PatternForm.SaveEvent.class, e -> {
+        patternForm.addListener(SaveEvent.class, e -> {
             savedContactRef.set(e.getItem());
         });
         patternForm.getSaveButton().click();

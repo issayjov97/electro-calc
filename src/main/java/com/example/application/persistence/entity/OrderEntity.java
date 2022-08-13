@@ -27,9 +27,7 @@ public class OrderEntity extends AbstractServiceEntity {
     @ManyToOne
     private JobOrderEntity jobOrderEntity;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {
-            CascadeType.MERGE
-    })
+    @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
             name = "order_pattern",
             joinColumns = @JoinColumn(name = "order_id"),
@@ -64,7 +62,7 @@ public class OrderEntity extends AbstractServiceEntity {
     }
 
 
-    public void removePatter(PatternEntity patternEntity) {
+    public void removePattern(PatternEntity patternEntity) {
         this.orderPatterns.remove(patternEntity);
         patternEntity.getOrders().remove(this);
     }

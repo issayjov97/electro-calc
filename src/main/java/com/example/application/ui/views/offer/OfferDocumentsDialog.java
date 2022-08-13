@@ -55,7 +55,7 @@ public class OfferDocumentsDialog extends DocumentsDialog<OfferEntity> {
 
             final Span deleteSpan = new Span("Delete");
             deleteSpan.addClickListener(e -> {
-                getEntity().removeFileEntity(fileEntity);
+                getEntity().getOfferFiles().remove(fileEntity);
                 fileRepository.delete(fileEntity);
                 updateList();
             });
@@ -112,7 +112,6 @@ public class OfferDocumentsDialog extends DocumentsDialog<OfferEntity> {
 
     @Override
     protected void updateList() {
-        filesGrid.getDataProvider().refreshAll();
         filesGrid.setItems(fileRepository.findByOfferEntityId(getEntity().getId()));
     }
 }

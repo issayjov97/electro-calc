@@ -1,11 +1,14 @@
-package com.example.application.ui.views.admin;
+package com.example.application.ui.views.admin.user;
 
 import com.example.application.persistence.entity.AuthorityEntity;
 import com.example.application.persistence.entity.UserEntity;
 import com.example.application.service.AuthorityService;
 import com.example.application.service.FirmService;
 import com.example.application.service.UserService;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractServicesView;
+import com.example.application.ui.views.admin.user.events.DeleteEvent;
+import com.example.application.ui.views.admin.user.events.SaveEvent;
 import com.example.application.ui.views.settings.SettingsView;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
@@ -103,9 +106,9 @@ public class UsersView extends AbstractServicesView<UserEntity, UserEntity> {
 
     @Override
     protected void configureEvents() {
-        userForm.addListener(UserForm.SaveEvent.class, this::saveItem);
-        userForm.addListener(UserForm.CloseEvent.class, e -> closeEditor());
-        userForm.addListener(UserForm.DeleteEvent.class, this::deleteItem);
+        userForm.addListener(SaveEvent.class, this::saveItem);
+        userForm.addListener(CloseEvent.class, e -> closeEditor());
+        userForm.addListener(DeleteEvent.class, this::deleteItem);
     }
 
     @Override
@@ -114,7 +117,7 @@ public class UsersView extends AbstractServicesView<UserEntity, UserEntity> {
         userForm.close();
     }
 
-    private void saveItem(UserForm.SaveEvent event) {
+    private void saveItem(SaveEvent event) {
         userService.save(event.getItem());
         updateList();
         closeEditor();
@@ -128,7 +131,7 @@ public class UsersView extends AbstractServicesView<UserEntity, UserEntity> {
         getItems().setItems(userService.loadAll());
     }
 
-    private void deleteItem(UserForm.DeleteEvent event) {
+    private void deleteItem(DeleteEvent event) {
         userService.delete(event.getItem());
         updateList();
         closeEditor();

@@ -1,5 +1,7 @@
 package com.example.application.persistence.entity;
 
+import org.springframework.web.server.ResponseStatusException;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -7,35 +9,36 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
+
 
 @Entity
 @Table(name = "users")
 public class UserEntity extends AbstractEntity {
-
-    private String        username;
-    private String        email;
-    private String        firstName;
-    private String        lastName;
-    private LocalDateTime createdAt;
-    private Boolean       enabled = true;
-    private String        password;
+    private static Long          oneTimePasswordDuration = 5 * 60 * 1000L; // 5 minutes
+    private        String        username;
+    private        String        email;
+    private        String        firstName;
+    private        String        lastName;
+    private        LocalDateTime createdAt;
+    private        Boolean       enabled                 = true;
+    private        String        password;
 
     @ManyToOne
     private FirmEntity firmEntity;
 
-    @ManyToMany(cascade = {
-            CascadeType.MERGE,
-    }, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(name = "user_role",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     Set<AuthorityEntity> authorityEntities;
+
+    @OneToOne(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY, mappedBy = "userEntity")
+    private OneTimePasswordEntity oneTimePassword;
 
     public FirmEntity getFirmEntity() {
         return firmEntity;
@@ -109,5 +112,23 @@ public class UserEntity extends AbstractEntity {
         return authorityEntities;
     }
 
+    public OneTimePasswordEntity getOneTimePassword() {
+        return oneTimePassword;
+    }
 
+    public void setOneTimePassword(OneTimePasswordEntity oneTimePassword) {
+        this.oneTimePassword = oneTimePassword;
+    }
+
+    public boolean isOTPValid(String value) {
+        if (this.oneTimePassword != null) {
+            if (oneTimePassword.getCreatedAt().getTime() + (oneTimePasswordDuration) < System.currentTimeMillis())
+                throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "One time password has expired");
+            else if (!oneTimePassword.getValue().equals(value))
+                throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Wrong one time password value");
+            return true;
+        } else {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "One time password not found");
+        }
+    }
 }

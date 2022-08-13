@@ -2,17 +2,15 @@ package com.example.application.ui.views.demand;
 
 import com.example.application.persistence.entity.DemandEntity;
 import com.example.application.persistence.entity.PatternEntity;
-import com.example.application.service.AuthService;
 import com.example.application.service.DemandService;
 import com.example.application.service.PatternService;
 import com.example.application.service.UserService;
 import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.MainView;
 import com.example.application.ui.views.ServiceDetailsDialog;
-import com.google.common.collect.Sets;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -22,12 +20,14 @@ import com.vaadin.flow.router.Route;
 
 @Route(value = "demand/:demandId", layout = MainView.class)
 public class DemandsPatternsView extends AbstractServicesView<PatternEntity, DemandEntity> implements BeforeEnterObserver {
-    private final DemandService  demandService;
-    private final     PatternService patternService;
-    private final UserService    userService;
+    private final DemandService        demandService;
+    private final PatternService       patternService;
+    private final UserService          userService;
     private final ServiceDetailsDialog serviceDetailsDialog;
     private final Button               addButton = new Button("Add pattern");
-    private       DemandEntity                                               demandEntity;
+    private final Span                 span      = new Span("Patterns");
+
+    private DemandEntity demandEntity;
 
     public DemandsPatternsView(DemandService demandService, PatternService patternService, UserService userService) {
         super(new Grid<>(PatternEntity.class, false), demandService);
@@ -57,9 +57,10 @@ public class DemandsPatternsView extends AbstractServicesView<PatternEntity, Dem
         getItems().addComponentColumn((patternEntity) -> {
             final Button deleteButton = new Button("Delete");
             deleteButton.addClickListener(e -> {
+                this.demandEntity = demandService.getById(demandEntity.getId());
                 demandEntity.getPatterns().remove(patternEntity);
                 demandService.save(demandEntity);
-                updateList();
+                getItems().setItems(demandEntity.getPatterns());
             });
             return deleteButton;
         }).setHeader("Patterns");
@@ -67,8 +68,9 @@ public class DemandsPatternsView extends AbstractServicesView<PatternEntity, Dem
 
     @Override
     protected HorizontalLayout getToolBar() {
+        span.addClassName("headline");
         addButton.addClickListener(e -> {
-            serviceDetailsDialog.setPatterns(Sets.difference(patternService.getAll(userService.getUserFirm()), demandEntity.getPatterns()));
+            serviceDetailsDialog.setPatterns(patternService.getFirmPatterns());
             getItems().asSingleSelect().clear();
             serviceDetailsDialog.open();
         });
@@ -77,7 +79,9 @@ public class DemandsPatternsView extends AbstractServicesView<PatternEntity, Dem
         toolbar.setAlignItems(Alignment.BASELINE);
         toolbar.getStyle().set("max-width", "100%");
         toolbar.addClassName("toolbar");
-        return new HorizontalLayout(new Label("Patterns"), toolbar);
+        HorizontalLayout horizontalLayout = new HorizontalLayout(span, toolbar);
+        horizontalLayout.setAlignItems(Alignment.BASELINE);
+        return horizontalLayout;
     }
 
     @Override
@@ -103,7 +107,7 @@ public class DemandsPatternsView extends AbstractServicesView<PatternEntity, Dem
     }
 
     public void updateList() {
-        getItems().setItems(demandEntity.getPatterns());
+        getItems().setItems(demandService.getById(demandEntity.getId()).getPatterns());
     }
 
     @Override

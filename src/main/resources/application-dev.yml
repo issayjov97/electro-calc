@@ -1,19 +1,23 @@
 spring:
   datasource:
-    url: jdbc:postgresql://ec2-54-228-218-84.eu-west-1.compute.amazonaws.com:5432/dcb5fv364bfb9p
-    username: xndorogfqxsfbq
-    password: a7643960139e0495c837ea4970456e83c53982211a76dada8fba56fab3360e34
+    url: jdbc:postgresql://ec2-34-253-119-24.eu-west-1.compute.amazonaws.com:5432/d4nu3a4cupid3g
+    username: ojqfypvnusoirn
+    password: e0dc89f2dbf421a6b47735060ea657617a4d302e880e087ae7f22a8dc5181849
   jpa:
     properties:
       hibernate.format_sql: true
+      hibernate:
+        order_by:
+          default_null_ordering: last
 logging:
   level:
     web: DEBUG
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
-    org.hibernate.type: DEBUG
+#    org.hibernate.type.descriptor.sql: TRACE
+#    org.hibernate.type: DEBUG
     org:
       springframework:
+        cache: TRACE
         web:
           filter:
             CommonsRequestLoggingFilter: DEBUG

@@ -2,6 +2,7 @@ package com.example.application.ui.views.settings;
 
 import com.example.application.persistence.entity.AuthorityEntity;
 import com.example.application.service.AuthorityService;
+import com.example.application.ui.events.CloseEvent;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
@@ -51,7 +52,7 @@ public class AddAuthorityDialog extends Div {
                 notification.setPosition(Notification.Position.TOP_CENTER);
                 roleField.clear();
                 dialog.close();
-                fireEvent(new CloseEvent(this));
+                fireEvent(new CloseEvent(this, false));
             }
         });
 
@@ -64,20 +65,6 @@ public class AddAuthorityDialog extends Div {
         dialogLayout.getStyle().set("width", "300px").set("max-width", "100%");
 
         return dialogLayout;
-    }
-
-    public static abstract class AuthorityDialogEvent extends ComponentEvent<AddAuthorityDialog> {
-
-        protected AuthorityDialogEvent(AddAuthorityDialog source) {
-            super(source, false);
-        }
-
-    }
-
-    public static class CloseEvent extends AddAuthorityDialog.AuthorityDialogEvent {
-        CloseEvent(AddAuthorityDialog source) {
-            super(source);
-        }
     }
 
     public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,

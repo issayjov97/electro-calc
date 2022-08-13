@@ -28,7 +28,7 @@ class CustomersViewTest {
     @BeforeEach
     void init() {
         UI.setCurrent(ui);
-        this.customersView = new CustomersView(customerService);
+        this.customersView = new CustomersView(customerService, null);
     }
 
     @Test

@@ -8,9 +8,13 @@ import com.example.application.service.DemandService;
 import com.example.application.service.FinancialService;
 import com.example.application.service.JobOrderService;
 import com.example.application.service.PdfGenerateServiceImpl;
+import com.example.application.ui.components.NotificationService;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.MainView;
 import com.example.application.ui.views.customer.CustomersView;
+import com.example.application.ui.views.demand.events.DeleteEvent;
+import com.example.application.ui.views.demand.events.SaveEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
@@ -52,7 +56,7 @@ public class DemandsView extends AbstractServicesView<DemandEntity, DemandEntity
             FileRepository fileRepository,
             PdfGenerateServiceImpl pdfGenerateService
     ) {
-        super(new Grid<>(DemandEntity.class, false), demandService);
+        super(new Grid<>(DemandEntity.class), demandService);
         this.jobOrderService = jobOrderService;
         this.demandForm = new DemandForm(pdfGenerateService, jobOrderService, customerService);
         this.demandService = demandService;
@@ -78,7 +82,7 @@ public class DemandsView extends AbstractServicesView<DemandEntity, DemandEntity
         getItems().addColumn(FinancialService::calculatePriceWithVat).setHeader("Price with VAT");
         getItems().addColumn(FinancialService::calculatePriceWithVat).setHeader("Total price");
         getItems().getColumns().forEach(itemColumn -> itemColumn.setAutoWidth(true));
-        getItems().setItems(demandService.getUserOffers());
+        getItems().setItems(demandService.getFirmDemands());
         getItems().asSingleSelect().addValueChangeListener(event -> {
             if (event.getValue() != null) {
                 demandForm.setEntity(event.getValue());
@@ -109,16 +113,18 @@ public class DemandsView extends AbstractServicesView<DemandEntity, DemandEntity
         getItems().addComponentColumn((demand) -> {
             final Button customerDetailsButton = new Button("Details");
             customerDetailsButton.addClickListener(e -> {
-                UI.getCurrent().navigate(CustomersView.class, demand.getCustomerEntity().getId());
+                if (demand.getCustomerEntity() != null)
+                    UI.getCurrent().navigate(CustomersView.class, demand.getCustomerEntity().getId());
+                else
+                    NotificationService.error("Customer is undefined");
             });
             return customerDetailsButton;
         }).setHeader("Customer");
 
-
         getItems().addComponentColumn((demand) -> {
             final Button deleteButton = new Button("Attach");
             deleteButton.addClickListener(e -> {
-                offerDocumentsDialog.setOfferEntity(demand);
+                offerDocumentsDialog.setEntity(demand);
                 offerDocumentsDialog.open();
             });
             return deleteButton;
@@ -150,9 +156,9 @@ public class DemandsView extends AbstractServicesView<DemandEntity, DemandEntity
 
     @Override
     protected void configureEvents() {
-        demandForm.addListener(DemandForm.SaveEvent.class, this::saveItem);
-        demandForm.addListener(DemandForm.CloseEvent.class, e -> closeEditor());
-        demandForm.addListener(DemandForm.DeleteEvent.class, this::deleteItem);
+        demandForm.addListener(SaveEvent.class, this::saveItem);
+        demandForm.addListener(CloseEvent.class, e -> closeEditor());
+        demandForm.addListener(DeleteEvent.class, this::deleteItem);
     }
 
     @Override
@@ -161,7 +167,7 @@ public class DemandsView extends AbstractServicesView<DemandEntity, DemandEntity
         demandForm.close();
     }
 
-    private void saveItem(DemandForm.SaveEvent event) {
+    private void saveItem(SaveEvent event) {
         demandService.save(event.getItem());
         updateList();
         closeEditor();
@@ -172,10 +178,10 @@ public class DemandsView extends AbstractServicesView<DemandEntity, DemandEntity
 
     @Override
     protected void updateList() {
-        getItems().setItems((demandService.getUserOffers()));
+        getItems().setItems((demandService.getFirmDemands()));
     }
 
-    private void deleteItem(DemandForm.DeleteEvent event) {
+    private void deleteItem(DeleteEvent event) {
         demandService.delete(event.getItem());
         updateList();
         closeEditor();
@@ -190,9 +196,9 @@ public class DemandsView extends AbstractServicesView<DemandEntity, DemandEntity
         QueryParameters queryParameters = location.getQueryParameters();
         Map<String, List<String>> parametersMap = queryParameters.getParameters();
 
-        if (parametersMap.containsKey("jobOrderId"))
-            getItems().setItems(jobOrderService.load(Long.parseLong(parametersMap.get("jobOrderId").get(0))).getDemandEntities());
-        else if (parametersMap.containsKey("customerId"))
+        if (parametersMap.containsKey("jobOrderId")) {
+            getItems().setItems(jobOrderService.getJobOrderWithDemands(Long.parseLong(parametersMap.get("jobOrderId").get(0))).getDemandEntities());
+        } else if (parametersMap.containsKey("customerId"))
             customerService.load(Long.parseLong(parametersMap.get("customerId").get(0)));
     }
 

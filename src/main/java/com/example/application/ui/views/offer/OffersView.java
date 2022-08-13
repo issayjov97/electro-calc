@@ -8,9 +8,13 @@ import com.example.application.service.FinancialService;
 import com.example.application.service.JobOrderService;
 import com.example.application.service.OfferService;
 import com.example.application.service.PdfGenerateServiceImpl;
+import com.example.application.ui.components.NotificationService;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.MainView;
 import com.example.application.ui.views.customer.CustomersView;
+import com.example.application.ui.views.offer.events.DeleteEvent;
+import com.example.application.ui.views.offer.events.SaveEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
@@ -23,17 +27,23 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
-import com.vaadin.flow.router.OptionalParameter;
+import com.vaadin.flow.router.Location;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteParameters;
+import com.vaadin.flow.router.WildcardParameter;
+
+import java.util.List;
+import java.util.Map;
 
 @PageTitle("Offers")
 @Route(value = "offers", layout = MainView.class)
-public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> implements HasUrlParameter<Long> {
+public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> implements HasUrlParameter<String> {
     private final TextField            filterItem = new TextField();
     private final OfferService         offerService;
     private final CustomerService      customerService;
+    private final JobOrderService      jobOrderService;
     private final Button               addButton  = new Button("Add offer");
     private final OfferDocumentsDialog offerDocumentsDialog;
     private final Span                 span       = new Span("Offers");
@@ -41,12 +51,13 @@ public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> i
 
     public OffersView(
             OfferService offerService,
-            CustomerService customerService,
+            JobOrderService jobOrderService1, CustomerService customerService,
             FileRepository fileRepository,
             JobOrderService jobOrderService,
             PdfGenerateServiceImpl pdfGenerateService
     ) {
         super(new Grid<>(OfferEntity.class, false), offerService);
+        this.jobOrderService = jobOrderService1;
         this.offerForm = new OfferForm(jobOrderService, customerService, pdfGenerateService);
         this.offerService = offerService;
         this.customerService = customerService;
@@ -73,8 +84,10 @@ public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> i
         getItems().getColumns().forEach(itemColumn -> itemColumn.setAutoWidth(true));
         getItems().setItems(offerService.getFirmOffers());
         getItems().asSingleSelect().addValueChangeListener(event -> {
-            offerForm.setEntity(event.getValue());
-            offerForm.open("Edit offer");
+            if (event.getValue() != null) {
+                offerForm.setEntity(event.getValue());
+                offerForm.open("Edit offer");
+            }
         });
 
         getItems().addComponentColumn((offer) -> {
@@ -100,7 +113,10 @@ public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> i
         getItems().addComponentColumn((offer) -> {
             final Button customerDetailsButton = new Button("Details");
             customerDetailsButton.addClickListener(e -> {
-                UI.getCurrent().navigate(CustomersView.class, offer.getCustomerEntity().getId());
+                if (offer.getCustomerEntity() != null)
+                    UI.getCurrent().navigate(CustomersView.class, offer.getCustomerEntity().getId());
+                else
+                    NotificationService.error("Customer is undefined");
             });
             return customerDetailsButton;
         }).setHeader("Customer");
@@ -139,12 +155,11 @@ public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> i
         return toolbar;
     }
 
-
     @Override
     protected void configureEvents() {
-        offerForm.addListener(OfferForm.SaveEvent.class, this::saveItem);
-        offerForm.addListener(OfferForm.CloseEvent.class, e -> closeEditor());
-        offerForm.addListener(OfferForm.DeleteEvent.class, this::deleteItem);
+        offerForm.addListener(SaveEvent.class, this::saveItem);
+        offerForm.addListener(CloseEvent.class, e -> closeEditor());
+        offerForm.addListener(DeleteEvent.class, this::deleteItem);
     }
 
     @Override
@@ -153,7 +168,7 @@ public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> i
         offerForm.close();
     }
 
-    private void saveItem(OfferForm.SaveEvent event) {
+    private void saveItem(SaveEvent event) {
         offerService.save(event.getItem());
         updateList();
         closeEditor();
@@ -167,7 +182,8 @@ public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> i
         getItems().setItems((offerService.getFirmOffers()));
     }
 
-    private void deleteItem(OfferForm.DeleteEvent event) {
+    private void deleteItem(DeleteEvent event) {
+        span.setClassName("headline");
         offerService.delete(event.getItem());
         updateList();
         closeEditor();
@@ -177,9 +193,15 @@ public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> i
     }
 
     @Override
-    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter Long customerId) {
-        if (customerId != null)
-            getItems().setItems(customerService.load(customerId).getOffers());
+    public void setParameter(BeforeEvent beforeEvent, @WildcardParameter String parameter) {
+        Location location = beforeEvent.getLocation();
+        QueryParameters queryParameters = location.getQueryParameters();
+        Map<String, List<String>> parametersMap = queryParameters.getParameters();
+
+        if (parametersMap.containsKey("jobOrderId")) {
+            getItems().setItems(jobOrderService.getJobOrderWithOffers(Long.parseLong(parametersMap.get("jobOrderId").get(0))).getOfferEntities());
+        } else if (parametersMap.containsKey("customerId"))
+            customerService.load(Long.parseLong(parametersMap.get("customerId").get(0)));
     }
 
     public TextField getFilterItem() {

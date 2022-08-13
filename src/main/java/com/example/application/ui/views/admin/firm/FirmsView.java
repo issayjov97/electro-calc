@@ -1,9 +1,12 @@
-package com.example.application.ui.views.admin;
+package com.example.application.ui.views.admin.firm;
 
 import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.service.AuthorityService;
 import com.example.application.service.FirmService;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractServicesView;
+import com.example.application.ui.views.admin.firm.events.DeleteEvent;
+import com.example.application.ui.views.admin.firm.events.SaveEvent;
 import com.example.application.ui.views.settings.SettingsView;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
@@ -27,15 +30,13 @@ public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
     private final Button      filterButton   = new Button("Filter");
     private final FirmService firmService;
 
-    public FirmsView(FirmService firmService, AuthorityService authorityService) {
+    public FirmsView(FirmService firmService) {
         super(new Grid<>(FirmEntity.class), firmService);
         this.firmService = firmService;
         addClassName("Firms-view");
-        setSizeFull();
         configureGrid();
         add(getToolBar(), getContent(), firmForm);
         configureEvents();
-
     }
 
     @Override
@@ -96,9 +97,9 @@ public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
 
     @Override
     protected void configureEvents() {
-        firmForm.addListener(FirmForm.SaveEvent.class, this::saveItem);
-        firmForm.addListener(FirmForm.CloseEvent.class, e -> closeEditor());
-        firmForm.addListener(FirmForm.DeleteEvent.class, this::deleteItem);
+        firmForm.addListener(SaveEvent.class, this::saveItem);
+        firmForm.addListener(CloseEvent.class, e -> closeEditor());
+        firmForm.addListener(DeleteEvent.class, this::deleteItem);
     }
 
     @Override
@@ -107,7 +108,7 @@ public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
         firmForm.close();
     }
 
-    private void saveItem(FirmForm.SaveEvent event) {
+    private void saveItem(SaveEvent event) {
         firmService.save(event.getItem());
         updateList();
         closeEditor();
@@ -121,7 +122,7 @@ public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
         getItems().setItems(firmService.loadAll());
     }
 
-    private void deleteItem(FirmForm.DeleteEvent event) {
+    private void deleteItem(DeleteEvent event) {
         firmService.delete(event.getItem());
         updateList();
         closeEditor();

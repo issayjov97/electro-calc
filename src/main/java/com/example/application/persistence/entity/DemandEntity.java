@@ -27,9 +27,7 @@ public class DemandEntity extends AbstractServiceEntity {
     @ManyToOne
     private FirmEntity firmEntity;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {
-            CascadeType.MERGE
-    })
+    @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
             name = "demand_pattern",
             joinColumns = @JoinColumn(name = "demand_id"),
@@ -39,8 +37,7 @@ public class DemandEntity extends AbstractServiceEntity {
     @OneToMany(
             mappedBy = "demandEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER
+            cascade = CascadeType.ALL
     )
     private Set<FileEntity> demandFiles;
 
@@ -61,9 +58,9 @@ public class DemandEntity extends AbstractServiceEntity {
     }
 
 
-    public void removePatter(PatternEntity patternEntity) {
+    public void removePattern(PatternEntity patternEntity) {
         this.demandPatterns.remove(patternEntity);
-        patternEntity.getOrders().remove(this);
+        patternEntity.getDemands().remove(this);
     }
 
     public FirmEntity getFirmEntity() {

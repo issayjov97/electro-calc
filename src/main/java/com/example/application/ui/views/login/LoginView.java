@@ -30,6 +30,10 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
+        login.setForgotPasswordButtonVisible(true);
+        login.addForgotPasswordListener(e->{
+
+        });
         add(appName, login);
         login.addLoginListener(e -> {
             try {

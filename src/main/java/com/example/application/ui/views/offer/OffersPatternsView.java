@@ -8,10 +8,9 @@ import com.example.application.service.UserService;
 import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.MainView;
 import com.example.application.ui.views.ServiceDetailsDialog;
-import com.google.common.collect.Sets;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -26,6 +25,7 @@ public class OffersPatternsView extends AbstractServicesView<PatternEntity, Offe
     private final UserService          userService;
     private final ServiceDetailsDialog serviceDetailsDialog;
     private final Button               addButton = new Button("Add pattern");
+    private final Span                 span      = new Span("Patterns");
     private       OfferEntity          offerEntity;
 
     public OffersPatternsView(OfferService offerService, PatternService patternService, UserService userService) {
@@ -56,9 +56,10 @@ public class OffersPatternsView extends AbstractServicesView<PatternEntity, Offe
         getItems().addComponentColumn((patternEntity) -> {
             final Button deleteButton = new Button("Delete");
             deleteButton.addClickListener(e -> {
+                this.offerEntity = offerService.load(offerEntity.getId());
                 offerEntity.getPatterns().remove(patternEntity);
                 offerService.save(offerEntity);
-                updateList();
+                getItems().setItems(offerEntity.getPatterns());
             });
             return deleteButton;
         }).setHeader("Patterns");
@@ -66,8 +67,9 @@ public class OffersPatternsView extends AbstractServicesView<PatternEntity, Offe
 
     @Override
     protected HorizontalLayout getToolBar() {
+        span.setClassName("headline");
         addButton.addClickListener(e -> {
-            serviceDetailsDialog.setPatterns(Sets.difference(patternService.getAll(userService.getUserFirm()), offerEntity.getPatterns()));
+            serviceDetailsDialog.setPatterns(patternService.getFirmPatterns());
             getItems().asSingleSelect().clear();
             serviceDetailsDialog.open();
         });
@@ -76,7 +78,9 @@ public class OffersPatternsView extends AbstractServicesView<PatternEntity, Offe
         toolbar.setAlignItems(Alignment.BASELINE);
         toolbar.getStyle().set("max-width", "100%");
         toolbar.addClassName("toolbar");
-        return new HorizontalLayout(new Label("Patterns"), toolbar);
+        HorizontalLayout horizontalLayout = new HorizontalLayout(span, toolbar);
+        horizontalLayout.setAlignItems(Alignment.BASELINE);
+        return horizontalLayout;
     }
 
     @Override
@@ -103,7 +107,7 @@ public class OffersPatternsView extends AbstractServicesView<PatternEntity, Offe
 
 
     public void updateList() {
-        getItems().setItems(offerEntity.getPatterns());
+        getItems().setItems(offerService.load(offerEntity.getId()).getPatterns());
     }
 
     @Override

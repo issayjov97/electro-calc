@@ -72,12 +72,13 @@ public class MainView extends AppLayout {
 
     private void createDrawer() {
         List<RouterLink> links = new ArrayList<>();
-        RouterLink listLink = new RouterLink("Patterns", PatternsView.class);
-        RouterLink customersLink = new RouterLink("Customers", CustomersView.class);
-        RouterLink ordersLink = new RouterLink("Orders", OrdersView.class);
-        RouterLink offersLink = new RouterLink("Offers", OffersView.class);
-        RouterLink demandsLink = new RouterLink("Demands", DemandsView.class);
-        RouterLink jobOrdersLink = new RouterLink("Job orders", JobOrderView.class);
+        RouterLink listLink = new RouterLink("Polozky(Patterns)", PatternsView.class);
+        RouterLink customersLink = new RouterLink("Zakaznici(Customers)", CustomersView.class);
+        RouterLink ordersLink = new RouterLink("Objednavky(Orders)", OrdersView.class);
+        RouterLink offersLink = new RouterLink("Nabidky(Offers)", OffersView.class);
+        RouterLink demandsLink = new RouterLink("Poptavky(Demands)", DemandsView.class);
+        RouterLink jobOrdersLink = new RouterLink("Zakazky(Job order)", JobOrderView.class);
+
         listLink.setHighlightCondition(HighlightConditions.sameLocation());
         links.add(listLink);
         links.add(customersLink);

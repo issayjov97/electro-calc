@@ -1,11 +1,13 @@
 package com.example.application.persistence.entity;
 
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,73 +16,81 @@ import java.util.Set;
 @Table(name = "firms")
 public class FirmEntity extends AbstractEntity {
 
-    private String         name;
-    private String         street;
-    private String         postCode;
-    private String         city;
-    private String         state;
-    private String         CIN;
-    private String         VATIN;
-    private String         phone;
-    private String         mobile;
-    private String         email;
+    private String name;
+    private String street;
+    private String postCode;
+    private String city;
+    private String state;
+    private String CIN;
+    private String VATIN;
+    private String phone;
+    private String mobile;
+    private String email;
 
     @OneToMany(
             mappedBy = "firmEntity",
             cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY
+            orphanRemoval = true
     )
     private final Set<CustomerEntity> customerEntities = new HashSet<>();
 
     @OneToMany(
             mappedBy = "firmEntity",
             cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY
+            orphanRemoval = true
     )
     private final Set<UserEntity> users = new HashSet<>();
 
     @OneToMany(
             mappedBy = "firmEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY
+            cascade = CascadeType.ALL
     )
     private Set<OfferEntity> offers;
 
     @OneToMany(
             mappedBy = "firmEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY
+            cascade = CascadeType.ALL
     )
     private Set<OrderEntity> orders;
 
     @OneToMany(
             mappedBy = "firmEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY
+            cascade = CascadeType.ALL
     )
     private Set<DemandEntity> demands;
 
     @OneToMany(
             mappedBy = "firmEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY
+            cascade = CascadeType.ALL
     )
     private Set<JobOrderEntity> jobOrderEntities;
 
     @OneToMany(
             mappedBy = "firmEntity",
             cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY
+            orphanRemoval = true
     )
+    @OrderBy("PLU ASC")
     Set<PatternEntity> patterns = new HashSet<>();
 
+    @ManyToMany( cascade = {CascadeType.MERGE})
+    @JoinTable(
+            name = "firm_pattern",
+            joinColumns = @JoinColumn(name = "firm_id"),
+            inverseJoinColumns = @JoinColumn(name = "pattern_id"))
+    private Set<PatternEntity> defaultPatterns;
+
+    public Set<PatternEntity> getDefaultPatterns() {
+        return defaultPatterns;
+    }
+
+    public void setDefaultPatterns(Set<PatternEntity> defaultPatterns) {
+        this.defaultPatterns = defaultPatterns;
+    }
 
     public void addOrder(OrderEntity orderEntity) {
         this.orders.add(orderEntity);
@@ -111,6 +121,27 @@ public class FirmEntity extends AbstractEntity {
         this.offers.remove(offerEntity);
         offerEntity.setFirmEntity(null);
     }
+
+    public void addPattern(PatternEntity patternEntity) {
+        this.patterns.add(patternEntity);
+        patternEntity.setFirmEntity(this);
+    }
+
+    public void removePattern(PatternEntity patternEntity) {
+        this.patterns.remove(patternEntity);
+        patternEntity.setFirmEntity(null);
+    }
+
+    public void addDefaultPattern(PatternEntity patternEntity) {
+        this.defaultPatterns.add(patternEntity);
+        patternEntity.setFirmEntity(this);
+    }
+
+    public void removeDefaultPattern(PatternEntity patternEntity) {
+        this.defaultPatterns.remove(patternEntity);
+        patternEntity.setFirmEntity(null);
+    }
+
 
     public Set<JobOrderEntity> getJobOrderEntities() {
         return jobOrderEntities;

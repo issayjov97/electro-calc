@@ -4,6 +4,8 @@ import com.example.application.persistence.entity.OrderEntity;
 import com.example.application.service.CustomerService;
 import com.example.application.service.JobOrderService;
 import com.example.application.service.PdfGenerateServiceImpl;
+import com.example.application.ui.views.order.events.DeleteEvent;
+import com.example.application.ui.views.order.events.SaveEvent;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,7 +53,7 @@ class OrderFormTest {
         orderForm.getWorkHours().setValue(workHours);
 
         AtomicReference<OrderEntity> savedContactRef = new AtomicReference<>(null);
-        orderForm.addListener(OrderForm.SaveEvent.class, e -> {
+        orderForm.addListener(SaveEvent.class, e -> {
             savedContactRef.set(e.getItem());
         });
 
@@ -70,7 +72,7 @@ class OrderFormTest {
         OrderEntity orderEntity = getOrder();
 
         AtomicReference<OrderEntity> deleteRef = new AtomicReference<>(null);
-        orderForm.addListener(OrderForm.DeleteEvent.class, e -> {
+        orderForm.addListener(DeleteEvent.class, e -> {
             deleteRef.set(e.getItem());
         });
 

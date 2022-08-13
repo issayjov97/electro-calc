@@ -1,7 +1,10 @@
 package com.example.application.ui.views.customer;
 
 import com.example.application.persistence.entity.CustomerEntity;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractForm;
+import com.example.application.ui.views.customer.events.DeleteEvent;
+import com.example.application.ui.views.customer.events.SaveEvent;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
@@ -70,7 +73,7 @@ public class CustomerForm extends AbstractForm<CustomerEntity> {
     protected HorizontalLayout createButtonsLayout() {
         saveButton.addClickListener(event -> validateAndSave());
         deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
-        cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this)));
+        cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this, false)));
         return new HorizontalLayout(saveButton, deleteButton, cancelButton);
     }
 
@@ -82,42 +85,6 @@ public class CustomerForm extends AbstractForm<CustomerEntity> {
         } catch (ValidationException e) {
             e.printStackTrace();
         }
-    }
-
-    public static abstract class CustomerFormEvent extends ComponentEvent<CustomerForm> {
-        private final CustomerEntity item;
-
-        protected CustomerFormEvent(CustomerForm source, CustomerEntity item) {
-            super(source, false);
-            this.item = item;
-        }
-
-        public CustomerEntity getItem() {
-            return item;
-        }
-    }
-
-    public static class SaveEvent extends CustomerFormEvent {
-        SaveEvent(CustomerForm source, CustomerEntity item) {
-            super(source, item);
-        }
-    }
-
-    public static class DeleteEvent extends CustomerFormEvent {
-        DeleteEvent(CustomerForm source, CustomerEntity item) {
-            super(source, item);
-        }
-    }
-
-    public static class CloseEvent extends CustomerFormEvent {
-        CloseEvent(CustomerForm source) {
-            super(source, null);
-        }
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
     }
 
     public TextField getNameField() {

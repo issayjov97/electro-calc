@@ -1,6 +1,8 @@
 package com.example.application.ui.views.customer;
 
 import com.example.application.persistence.entity.CustomerEntity;
+import com.example.application.ui.views.customer.events.DeleteEvent;
+import com.example.application.ui.views.customer.events.SaveEvent;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,7 +37,7 @@ class CustomerFormTest {
         customerForm.getPhoneField().setValue(phone);
 
         AtomicReference<CustomerEntity> savedContactRef = new AtomicReference<>(null);
-        customerForm.addListener(CustomerForm.SaveEvent.class, e -> {
+        customerForm.addListener(SaveEvent.class, e -> {
             savedContactRef.set(e.getItem());
         });
         customerForm.getSaveButton().click();
@@ -54,7 +56,7 @@ class CustomerFormTest {
         customerForm.setEntity(customerEntity);
 
         AtomicReference<CustomerEntity> deleteUserRef = new AtomicReference<>(null);
-        customerForm.addListener(CustomerForm.DeleteEvent.class, e -> {
+        customerForm.addListener(DeleteEvent.class, e -> {
             deleteUserRef.set(e.getItem());
         });
 

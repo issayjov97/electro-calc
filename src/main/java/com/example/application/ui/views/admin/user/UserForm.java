@@ -1,18 +1,15 @@
-package com.example.application.ui.views.admin;
+package com.example.application.ui.views.admin.user;
 
 import com.example.application.persistence.entity.AuthorityEntity;
 import com.example.application.persistence.entity.FirmEntity;
-import com.example.application.persistence.entity.JobOrderEntity;
 import com.example.application.persistence.entity.UserEntity;
 import com.example.application.service.FirmService;
+import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractForm;
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.button.Button;
+import com.example.application.ui.views.admin.user.events.DeleteEvent;
+import com.example.application.ui.views.admin.user.events.SaveEvent;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.checkbox.CheckboxGroup;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -24,23 +21,23 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.validator.EmailValidator;
-import com.vaadin.flow.shared.Registration;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class UserForm extends AbstractForm<UserEntity> {
-    private       List<AuthorityEntity> allAuthorities = new ArrayList<>();
-    private final TextField             username       = new TextField("Username");
-    private final TextArea              firstName      = new TextArea("First name");
-    private final TextField             lastName       = new TextField("Last name");
-    private final EmailField            email          = new EmailField("Email");
-    private final     PasswordField  password        = new PasswordField("Password");
-    private final Select<FirmEntity> firms = new Select<>();
-    private final Checkbox           enabled         = new Checkbox("Enabled");
-    private final CheckboxGroup<AuthorityEntity> authorities = new CheckboxGroup<>();
+    private       List<AuthorityEntity>          allAuthorities = new ArrayList<>();
+    private final TextField                      username       = new TextField("Username");
+    private final TextArea                       firstName      = new TextArea("First name");
+    private final TextField                      lastName       = new TextField("Last name");
+    private final EmailField                     email          = new EmailField("Email");
+    private final PasswordField                  password       = new PasswordField("Password");
+    private final Select<FirmEntity>             firms          = new Select<>();
+    private final Checkbox                       enabled        = new Checkbox("Enabled");
+    private final CheckboxGroup<AuthorityEntity> authorities    = new CheckboxGroup<>();
     private final FirmService                    firmService;
+
     public UserForm(FirmService firmService) {
         super(new BeanValidationBinder<>(UserEntity.class));
         this.firmService = firmService;
@@ -140,7 +137,7 @@ public class UserForm extends AbstractForm<UserEntity> {
     protected HorizontalLayout createButtonsLayout() {
         saveButton.addClickListener(event -> validateAndSave());
         deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
-        cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this)));
+        cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this, false)));
         return new HorizontalLayout(saveButton, deleteButton, cancelButton);
     }
 
@@ -152,42 +149,6 @@ public class UserForm extends AbstractForm<UserEntity> {
         } catch (ValidationException e) {
             e.printStackTrace();
         }
-    }
-
-    public static abstract class UserFormEvent extends ComponentEvent<UserForm> {
-        private final UserEntity item;
-
-        protected UserFormEvent(UserForm source, UserEntity item) {
-            super(source, false);
-            this.item = item;
-        }
-
-        public UserEntity getItem() {
-            return item;
-        }
-    }
-
-    public static class SaveEvent extends UserFormEvent {
-        SaveEvent(UserForm source, UserEntity contact) {
-            super(source, contact);
-        }
-    }
-
-    public static class DeleteEvent extends UserFormEvent {
-        DeleteEvent(UserForm source, UserEntity contact) {
-            super(source, contact);
-        }
-    }
-
-    public static class CloseEvent extends UserFormEvent {
-        CloseEvent(UserForm source) {
-            super(source, null);
-        }
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
     }
 
     public TextField getUsername() {

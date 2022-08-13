@@ -28,6 +28,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 
 public class PatternImagesDialog extends Div {
@@ -117,7 +118,7 @@ public class PatternImagesDialog extends Div {
 
     private void updateList() {
         this.patternEntity = patternService.getPattern(patternEntity.getName());
-        listBox.setItems((patternEntity.getPatternImages()));
+        listBox.setItems((imageRepository.find(List.of(patternEntity.getId()))));
         listBox.getDataProvider().refreshAll();
 
     }
