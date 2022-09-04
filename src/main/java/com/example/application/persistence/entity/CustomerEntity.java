@@ -1,6 +1,7 @@
 package com.example.application.persistence.entity;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
@@ -15,6 +16,8 @@ public class CustomerEntity extends AbstractEntity {
     private String name;
     private String email;
     private String phone;
+    @Column(columnDefinition = "TEXT")
+    private String note;
 
     @ManyToOne
     private FirmEntity firmEntity;
@@ -24,21 +27,7 @@ public class CustomerEntity extends AbstractEntity {
             orphanRemoval = true,
             cascade = CascadeType.ALL
     )
-    private Set<OrderEntity> orders;
-
-    @OneToMany(
-            mappedBy = "customerEntity",
-            orphanRemoval = true,
-            cascade = CascadeType.ALL
-    )
     private Set<OfferEntity> offers;
-
-    @OneToMany(
-            mappedBy = "customerEntity",
-            orphanRemoval = true,
-            cascade = CascadeType.ALL
-    )
-    private Set<DemandEntity> demands;
 
     public FirmEntity getFirmEntity() {
         return firmEntity;
@@ -72,14 +61,6 @@ public class CustomerEntity extends AbstractEntity {
         this.phone = phone;
     }
 
-    public Set<OrderEntity> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(Set<OrderEntity> orders) {
-        this.orders = orders;
-    }
-
     public Set<OfferEntity> getOffers() {
         return offers;
     }
@@ -88,11 +69,11 @@ public class CustomerEntity extends AbstractEntity {
         this.offers = offers;
     }
 
-    public Set<DemandEntity> getDemands() {
-        return demands;
+    public String getNote() {
+        return note;
     }
 
-    public void setDemands(Set<DemandEntity> demands) {
-        this.demands = demands;
+    public void setNote(String note) {
+        this.note = note;
     }
 }

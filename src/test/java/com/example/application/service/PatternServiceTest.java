@@ -1,21 +1,13 @@
 package com.example.application.service;
 
-import com.example.application.persistence.entity.PatternEntity;
-import com.example.application.predicate.PatternSpecification;
+import com.example.application.persistence.predicate.PatternSpecification;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import javax.persistence.EntityNotFoundException;
-
-import static com.helger.commons.mock.CommonsAssert.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
@@ -34,10 +26,9 @@ class PatternServiceTest {
     public void shouldOverrideDefaultPattern() {
         final String PLU = "6396654";
 
-        var patterns = patternService.filter(new PatternSpecification(1L, PLU, null));
+        var patterns = patternService.filter(new PatternSpecification(1L, null));
 
         assertEquals(1, patterns.size());
-        assertTrue(patterns.stream().anyMatch(it -> it.getPLU().equals(PLU)));
         assertTrue(patterns.stream().anyMatch(it -> it.getFirmEntity() != null));
     }
 

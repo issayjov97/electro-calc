@@ -26,9 +26,6 @@
     </parent>
 
     <repositories>
-        <!-- The order of definitions matters. Explicitly defining central here to make sure it has the highest priority. -->
-
-        <!-- Main Maven repository -->
         <repository>
             <id>central</id>
             <url>https://repo.maven.apache.org/maven2</url>
@@ -130,10 +127,15 @@
             <version>31.1-jre</version>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.xhtmlrenderer</groupId>
             <artifactId>flying-saucer-pdf</artifactId>
             <version>9.1.22</version>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -143,6 +145,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+
         <dependency>
             <!-- Make method based security testing easier -->
             <groupId>org.springframework.security</groupId>
@@ -167,7 +174,6 @@
             </exclusions>
         </dependency>
     </dependencies>
-
     <build>
 <!--        <defaultGoal>spring-boot:run</defaultGoal>-->
 <!--        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>-->

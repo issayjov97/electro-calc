@@ -8,20 +8,21 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 public abstract class AbstractServicesView<E extends AbstractEntity, S extends AbstractEntity> extends VerticalLayout {
-    private final Grid<E>        itemsGrid;
-    private final CrudService<S> crudService;
+    private final Grid<E> itemsGrid;
+    private final CrudService<S>   crudService;
+    private int lastPage;
 
     public AbstractServicesView(Grid<E> grid, CrudService<S> crudService) {
         this.itemsGrid = grid;
         this.crudService = crudService;
-        itemsGrid.setPageSize(15);
+        itemsGrid.setPageSize(21);
         setSizeFull();
     }
 
     public Component getContent() {
-        VerticalLayout verticalLayout = new VerticalLayout(itemsGrid);
-        verticalLayout.setSizeFull();
-        return verticalLayout;
+        HorizontalLayout horizontalLayout = new HorizontalLayout(itemsGrid);
+        horizontalLayout.setSizeFull();
+        return horizontalLayout;
     }
 
     protected abstract void configureForm();
@@ -38,5 +39,13 @@ public abstract class AbstractServicesView<E extends AbstractEntity, S extends A
 
     public Grid<E> getItems() {
         return itemsGrid;
+    }
+
+    public int getLastPage() {
+        return lastPage;
+    }
+
+    public void setLastPage(int lastPage) {
+        this.lastPage = lastPage;
     }
 }

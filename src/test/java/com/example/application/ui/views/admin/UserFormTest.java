@@ -2,9 +2,10 @@ package com.example.application.ui.views.admin;
 
 import com.example.application.persistence.entity.AuthorityEntity;
 import com.example.application.persistence.entity.UserEntity;
-import com.example.application.ui.views.admin.user.UserForm;
-import com.example.application.ui.views.admin.user.events.DeleteEvent;
-import com.example.application.ui.views.admin.user.events.SaveEvent;
+import com.example.application.ui.views.settings.admin.user.UserForm;
+import com.example.application.ui.views.settings.admin.user.events.SaveEvent;
+import com.example.application.ui.views.settings.admin.user.events.DeleteEvent;
+
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -67,7 +68,6 @@ class UserFormTest {
         assertEquals(username, savedUserEntity.getUsername());
         assertEquals(true, savedUserEntity.getEnabled());
         assertEquals(authorities.size(), savedUserEntity.getAuthorityEntities().size());
-
     }
 
     @Test

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="cs" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Cenová nabídka</title>
+    <style>
+        body {
+            font-family: Tahoma;
+            font-size: 12px;
+            color: #333333;
+            background-color: #FFFFFF;
+        }
+
+        .main-table {
+            width: 595px;
+            font-size: 12px;
+            border: 0;
+            margin: 0 auto;
+        }
+
+        table {
+            width: 100%;
+            height: 100%;
+        }
+
+        td {
+            vertical-align: top;
+            font-size: 12px;
+        }
+
+        p {
+            margin: 3px;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .basic-info {
+            font-size: 12px;
+            width: 35%;
+        }
+
+        .date {
+            width: 50px;
+            height: 50px;
+            vertical-align: bottom;
+        }
+
+        .patterns-list {
+            border-collapse: collapse;
+            border: 1px solid #CCCCCC;
+        }
+
+        .pattern-name {
+            width: 35%;
+        }
+
+        .pattern {
+            border: 1px solid black;
+            background-color: #f2f2f2;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .identifier {
+            width: 3%;
+        }
+
+    </style>
+</head>
+<body>
+<table class="main-table">
+    <tbody>
+    <tr>
+        <td>
+            <table>
+                <tbody>
+                <tr>
+                    <td class="date" th:text="'Datum vytvoření: '+${offer.createdDate}"></td>
+                </tr>
+                </tbody>
+            </table>
+            <table>
+                <tr>
+                    <th th:text="'Odběratel:'">Odberatel:</th>
+                    <th></th>
+                    <th th:text="'Dodavatel'">Dodavatel</th>
+                </tr>
+                <tbody>
+                <tr>
+                    <td th:if="${customer != null}" class="basic-info">
+                        <p th:if="${customer.name}" th:text="${customer.name}">Jméno společnosti klienta</p>
+                        <p th:if="${customer.email}" th:text="'Email: '+${customer.email}">Email:</p>
+                        <p th:if="${customer.phone}" th:text="'Tel.: '+${customer.phone}">Tel.:</p>
+                    </td>
+                    <td class="basic-info">
+                    </td>
+                    <td class="basic-info" th:if="${firm!=null}">
+                        <p th:text="${firm.name}">Název
+                            společnosti</p>
+                        <p  th:if="${firm.email}" th:text="'Email: ' + ${firm.email}">Email:</p>
+                        <p  th:if="${firm.phone}" th:text="'Telefon: ' + ${firm.phone}">Tel.:</p>
+                        <p  th:text="'Adresa: ' + ${firm.street}+ ', '+ ${firm.postCode} +' '+ ${firm.city} +', ' +${firm.state}">
+                            Adresa</p>
+                        <p  th:if="${firm.CIN}" th:text="'IČ: ' + ${firm.CIN}">IČO</p>
+                        <p  th:if="${firm.VATIN}" th:text="'DIČ: ' + ${firm.VATIN}">DIČ</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <table>
+                <tbody>
+                <tr>
+                    <td>
+                        <div class="title">
+                            Nabídka elektrikáských prací
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <table width="100%" cellspacing="0" cellpadding="2" border="1" bordercolor="#CCCCCC">
+                <tbody>
+                <tr>
+                    <td class="pattern identifier">
+                        <strong>№ </strong></td>
+                    <td class="pattern pattern-name"><strong>Název </strong>
+                    </td>
+                    <td class="pattern">
+                        <strong>Množství</strong></td>
+                    <td class="pattern"><strong>Cena</strong>
+                    </td>
+                    <td class="pattern"><strong>Popis</strong>
+                    </td>
+                    <td class="pattern"><strong>Doba montáže</strong></td>
+                </tr>
+                <tr style="display:none;">
+                    <td colspan="*"></td>
+                </tr>
+                <tr th:each="item, iterStat: ${patterns}">
+                    <td style="font-size:12px;text-align: center" th:text="${iterStat.index + 1}">Index</td>
+                    <td th:text="${item.patternEntity.name}">Název</td>
+                    <td th:text="${item.count}">Počet</td>
+                    <td th:text="${item.patternEntity.priceWithoutVAT}">Cena bez DPH</td>
+                    <td th:text="${item.patternEntity.description}">Popis</td>
+                    <td th:text="${item.patternEntity.duration}">Doba montáže</td>
+                </tr>
+                </tbody>
+            </table>
+            <table>
+                <tbody>
+                <tr>
+                    <td style="width:50%;"><strong> </strong></td>
+                    <td>
+                        <table>
+                            <tbody>
+                            <tr>
+                                <td th:text="'Cena montáže:'" style="text-align: right;">Cena celkem</td>
+
+                                <td th:text="${offer.workCost}+'Kč'" style="text-align: right;">500,00 Kč</td>
+                            </tr>
+                            <tr>
+                                <td th:text="'Cena materiálu:'" style="text-align: right;">Cena materiálů:</td>
+
+                                <td th:text="${offer.materialsCost}+'Kč'" style="text-align: right;">500,00 Kč</td>
+                            </tr>
+                            <tr>
+                                <td th:text="'Cena dopravy:'" style="text-align: right;">Cena dopravy:</td>
+
+                                <td th:text="${offer.transportationCost}+'Kč'" style="text-align: right;">500,00 Kč</td>
+                            </tr>
+                            <tr>
+                                <td th:text="'DPH:'" style="text-align: right">DPH</td>
+                                <td th:text="${settings.dph} + '%'" style="text-align: right">0,00 %</td>
+                            </tr>
+                            <tr>
+                                <td th:text="'Sleva:'" style="text-align: right;">Sleva</td>
+                                <td th:text="${settings.sale}+'%'" style="text-align: right;">0,00 %</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; font-weight:700;"><b>Celkem k platbe</b></td>
+                                <td th:text="${offer.totalPriceWithVAT}+'Kč'" style="text-align: right; font-weight:700;"><b>500,00
+                                    Kč</b></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <table style="height:50px;">
+                <tbody>
+                <tr>
+                    <td style="font-size:12px;text-align:justify;"></td>
+                </tr>
+                </tbody>
+            </table>
+            <table style="height:50px;">
+                <tbody>
+                <tr>
+                    <td
+                            style="border-top:double medium #CCCCCC; width:65%; vertical-align: bottom;">
+                        <p>Razitko a podpis: _________________________</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

@@ -6,6 +6,7 @@ import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -26,9 +27,9 @@ public abstract class AbstractForm<E extends AbstractEntity> extends Div {
         this.headline = new H2();
         this.dialog = new Dialog();
         this.binder = validator;
-        this.saveButton = new Button("Save");
-        this.deleteButton = new Button("Delete");
-        this.cancelButton = new Button("Cancel");
+        this.saveButton = new Button("Uložit");
+        this.deleteButton = new Button("Odstranit");
+        this.cancelButton = new Button("Zrušit");
     }
 
     protected abstract void setBinder();
@@ -37,6 +38,10 @@ public abstract class AbstractForm<E extends AbstractEntity> extends Div {
 
     public void open(String title) {
         headline.setText(title);
+        if (getEntity() == null || getEntity().getId() == null)
+            getDeleteButton().setVisible(false);
+        else
+            getDeleteButton().setVisible(true);
         dialog.open();
     }
 
@@ -72,6 +77,10 @@ public abstract class AbstractForm<E extends AbstractEntity> extends Div {
 
     public Button getDeleteButton() {
         return deleteButton;
+    }
+
+    public H2 getHeadline() {
+        return headline;
     }
 
     public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,

@@ -4,12 +4,14 @@ import com.example.application.persistence.entity.AuthorityEntity;
 import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.persistence.entity.UserEntity;
 import com.example.application.persistence.repository.UserRepository;
-import com.example.application.predicate.UserPredicate;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -27,12 +29,19 @@ public class UserService implements CrudService<UserEntity> {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<UserEntity> loadAll() {
+        return userRepository.findAll();
+    }
+
     @Override
     public JpaRepository<UserEntity, Long> getRepository() {
         return userRepository;
     }
 
     @Transactional
+    @CacheEvict(value="firms", allEntries = true)
     @Override
     public UserEntity save(UserEntity userEntity) {
         userEntity.setCreatedAt(LocalDateTime.now());
@@ -41,42 +50,17 @@ public class UserService implements CrudService<UserEntity> {
         return CrudService.super.save(userEntity);
     }
 
-    @Override
-    public void delete(UserEntity entity) {
-        CrudService.super.delete(entity);
-    }
-
-    @Override
-    public void deleteById(long id) {
-        CrudService.super.deleteById(id);
-    }
-
-    @Override
-    public long count() {
-        return CrudService.super.count();
-    }
-
-    @Override
-    public UserEntity load(long id) {
-        return CrudService.super.load(id);
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<UserEntity> loadAll() {
-        return userRepository.findAll();
-    }
-
     @Transactional(readOnly = true)
     public UserEntity getByUsername(String username) {
         return userRepository.findFullUserByUsername(username).orElseThrow(() -> {
-            throw new RuntimeException("User not found");
+            throw new EntityNotFoundException("User not found");
         });
     }
 
     @Transactional(readOnly = true)
-    public FirmEntity getUserFirm() {
-        var user = userRepository.findBriefUserByUsername(AuthService.getUsername()).orElseThrow(() -> {
+    @Cacheable(value = "firms", key = "#username")
+    public FirmEntity getUserFirm(String username) {
+        var user = userRepository.findBriefUserByUsername(username).orElseThrow(() -> {
             throw new RuntimeException("User not found");
         });
         return user.getFirmEntity();
@@ -90,14 +74,4 @@ public class UserService implements CrudService<UserEntity> {
         return user.getAuthorityEntities();
     }
 
-    public Set<UserEntity> filter(String username, String email) {
-        List<UserEntity> result = loadAll();
-        if (username != null && !username.isBlank()) {
-            UserPredicate.withUsername(username);
-        }
-        if (email != null && !email.isBlank()) {
-            UserPredicate.withEmail(email);
-        }
-        return UserPredicate.filterUsers(result);
-    }
 }

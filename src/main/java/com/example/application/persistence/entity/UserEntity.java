@@ -1,7 +1,5 @@
 package com.example.application.persistence.entity;
 
-import org.springframework.web.server.ResponseStatusException;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -37,7 +35,7 @@ public class UserEntity extends AbstractEntity {
     )
     Set<AuthorityEntity> authorityEntities;
 
-    @OneToOne(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY, mappedBy = "userEntity")
+    @OneToOne(cascade = {CascadeType.ALL}, mappedBy = "userEntity", fetch = FetchType.LAZY)
     private OneTimePasswordEntity oneTimePassword;
 
     public FirmEntity getFirmEntity() {
@@ -123,12 +121,12 @@ public class UserEntity extends AbstractEntity {
     public boolean isOTPValid(String value) {
         if (this.oneTimePassword != null) {
             if (oneTimePassword.getCreatedAt().getTime() + (oneTimePasswordDuration) < System.currentTimeMillis())
-                throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "One time password has expired");
+                throw new RuntimeException("One time password has expired");
             else if (!oneTimePassword.getValue().equals(value))
-                throw new ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "Wrong one time password value");
+                throw new RuntimeException("Wrong one time password value");
             return true;
         } else {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "One time password not found");
+            throw new RuntimeException("One time password not found");
         }
     }
 }

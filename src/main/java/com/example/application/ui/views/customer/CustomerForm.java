@@ -5,11 +5,6 @@ import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractForm;
 import com.example.application.ui.views.customer.events.DeleteEvent;
 import com.example.application.ui.views.customer.events.SaveEvent;
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -18,17 +13,16 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.validator.EmailValidator;
-import com.vaadin.flow.shared.Registration;
 
 public class CustomerForm extends AbstractForm<CustomerEntity> {
-    private final TextField      nameField    = new TextField("Name");
-    private final TextArea       emailField   = new TextArea("Email");
-    private final TextField      phoneField   = new TextField("Phone");
+    private final TextField nameField  = new TextField("Zkratka");
+    private final TextArea  emailField = new TextArea("Email");
+    private final TextField phoneField = new TextField("Telefonní číslo");
+    private final TextArea  note       = new TextArea("Poznámka");
 
     public CustomerForm() {
         super(new BeanValidationBinder<>(CustomerEntity.class));
         setBinder();
-        dialog.getElement().setAttribute("aria-label", "Add new customer");
         dialog.add(createDialogLayout());
         nameField.setSizeFull();
         emailField.setSizeFull();
@@ -37,26 +31,28 @@ public class CustomerForm extends AbstractForm<CustomerEntity> {
 
     @Override
     protected void setBinder() {
-        binder.forField(nameField).asRequired("Name is required")
+        binder.forField(nameField).asRequired("Název je povinný")
                 .withValidator(
                         name -> name.length() >= 3,
-                        "Name must contain at least 3 characters "
+                        "Min 3 znáků "
                 )
                 .bind(CustomerEntity::getName, CustomerEntity::setName);
 
-        binder.forField(emailField).asRequired("Email is required")
+        binder.forField(emailField).asRequired("Email je povinný")
                 .withValidator(new EmailValidator(
-                        "This doesn't look like a valid email address"))
+                        "Email je nevalidní"))
                 .bind(CustomerEntity::getEmail, CustomerEntity::setEmail);
 
         binder.forField(phoneField)
                 .bind(CustomerEntity::getPhone, CustomerEntity::setPhone);
-    }
 
+        binder.forField(note)
+                .bind(CustomerEntity::getName, CustomerEntity::setNote);
+    }
 
     @Override
     protected VerticalLayout createDialogLayout() {
-        VerticalLayout fieldLayout = new VerticalLayout(nameField, emailField, phoneField);
+        VerticalLayout fieldLayout = new VerticalLayout(nameField, emailField, phoneField, note);
         fieldLayout.setSpacing(false);
         fieldLayout.setPadding(false);
         fieldLayout.setAlignItems(FlexComponent.Alignment.STRETCH);

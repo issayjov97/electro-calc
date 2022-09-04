@@ -24,7 +24,7 @@ public class CustomerService implements FilterableCrudService<CustomerEntity> {
 
     @Transactional(readOnly = true)
     public Set<CustomerEntity> findFirmCustomers() {
-        var firm = userService.getUserFirm();
+        var firm = userService.getUserFirm(AuthService.getUsername());
         return customerRepository.findCustomersByFirmEntityId(firm.getId());
     }
 
@@ -36,7 +36,7 @@ public class CustomerService implements FilterableCrudService<CustomerEntity> {
     @Transactional
     @Override
     public CustomerEntity save(CustomerEntity customerEntity) {
-        var firmEntity = userService.getUserFirm();
+        var firmEntity = userService.getUserFirm(AuthService.getUsername());
         customerEntity.setFirmEntity(firmEntity);
         return FilterableCrudService.super.save(customerEntity);
     }
@@ -63,7 +63,7 @@ public class CustomerService implements FilterableCrudService<CustomerEntity> {
 
     @Transactional(readOnly = true)
     public Set<CustomerEntity> getFirmCustomers() {
-        var firm = userService.getUserFirm();
+        var firm = userService.getUserFirm(AuthService.getUsername());
         return customerRepository.findCustomersByFirmEntityId(firm.getId());
     }
 

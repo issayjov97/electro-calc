@@ -1,8 +1,9 @@
 package com.example.application.service;
 
-import com.example.application.mapper.PatternMapper;
 import com.example.application.persistence.entity.OfferEntity;
+import com.example.application.persistence.entity.OfferPattern;
 import com.example.application.persistence.entity.PatternEntity;
+import com.example.application.persistence.repository.OfferPatternRepository;
 import com.example.application.persistence.repository.OfferRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -10,64 +11,52 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class OfferService implements FilterableCrudService<OfferEntity> {
-    private final OfferRepository offerRepository;
-    private final UserService     userService;
-    private final FirmService     firmService;
-    private final PatternService  patternService;
+    private final OfferRepository        offerRepository;
+    private final OfferPatternRepository offerPatternRepository;
+    private final UserService            userService;
+    private final FinancialService       financialService;
 
-    public OfferService(OfferRepository offerRepository, UserService userService, FirmService firmService, PatternService patternService) {
+    public OfferService(
+            OfferRepository offerRepository,
+            OfferPatternRepository offerPatternRepository,
+            UserService userService,
+            FinancialService financialService) {
         this.offerRepository = offerRepository;
+        this.offerPatternRepository = offerPatternRepository;
         this.userService = userService;
-        this.firmService = firmService;
-        this.patternService = patternService;
+        this.financialService = financialService;
     }
 
     @Transactional
     @Override
     public OfferEntity save(OfferEntity offerEntity) {
-        if (offerEntity.getId() == null)
-            offerEntity.setCreatedAt(LocalDateTime.now());
-        offerEntity.setFirmEntity(userService.getUserFirm());
-        return FilterableCrudService.super.save(offerEntity);
+        if (offerEntity.getId() == null) {
+            offerEntity.setFirmEntity(userService.getUserFirm(AuthService.getUsername()));
+        }
+        var offer = FilterableCrudService.super.save(offerEntity);
+        calculateOfferSummary(offer);
+        return offer;
     }
 
     @Override
     public void delete(OfferEntity entity) {
-        entity.setCustomerEntity(null);
-        FilterableCrudService.super.delete(entity);
-    }
-
-    @Override
-    public void deleteById(long id) {
-        FilterableCrudService.super.deleteById(id);
-    }
-
-    @Override
-    public long count() {
-        return FilterableCrudService.super.count();
-    }
-
-    @Override
-    public OfferEntity load(long id) {
-        return offerRepository.getById(id);
+        var offer = offerRepository.findFullOfferById(entity.getId());
+        offer.getOfferPatterns().clear();
+        offer.setCustomerEntity(null);
+        offer.setFirmEntity(null);
+        FilterableCrudService.super.delete(offer);
     }
 
     @Override
     public JpaRepository<OfferEntity, Long> getRepository() {
         return offerRepository;
-    }
-
-    @Transactional(readOnly = true)
-    public Set<OfferEntity> getFirmOffers() {
-        var firm = userService.getUserFirm();
-        return offerRepository.findOfferByFirmEntityId(firm.getId());
     }
 
     @Override
@@ -77,18 +66,71 @@ public class OfferService implements FilterableCrudService<OfferEntity> {
 
     @Override
     public Set<OfferEntity> filter(Specification<OfferEntity> specifications) {
-        return new HashSet<>(offerRepository.findAll(specifications));
+        return new HashSet<>(offerRepository.findAll(specifications)).stream().peek(this::calculateOfferSummary)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public Set<OfferEntity> filter(Specification<OfferEntity> specifications, int offset, int size) {
-        return new HashSet<>(offerRepository.findAll(specifications, PageRequest.of(offset / size, size)).getContent());
+        return new HashSet<>(offerRepository.findAll(specifications, PageRequest.of(offset / size, size)).getContent())
+                .stream().peek(this::calculateOfferSummary)
+                .collect(Collectors.toSet());
     }
 
     @Transactional
-    public void addOfferPatterns(Set<PatternEntity> offerPatterns, OfferEntity offer) {
+    public void addOfferPattern(PatternEntity offerPattern, OfferEntity offer, int count) {
         var offerEntity = offerRepository.getById(offer.getId());
-        offerEntity.getPatterns().addAll(offerPatterns);
+        offerEntity.addPatterns(offerPattern, count);
         save(offerEntity);
+    }
+
+    public OfferEntity getOfferWithBriefPatterns(Long id) {
+        var offerEntity = offerRepository.getById(id);
+        calculateOfferSummary(offerEntity);
+        return offerEntity;
+    }
+
+
+    public OfferEntity getOfferWithFullPatterns(Long id) {
+        var offerEntity = offerRepository.findFullOfferById(id);
+        calculateOfferSummary(offerEntity);
+        calculateOfferDetails(offerEntity);
+        return offerEntity;
+    }
+
+    public Set<OfferEntity> getCustomerOffers(Long id) {
+        return offerRepository.getCustomerOffers(id);
+    }
+
+    public void updateOfferPatternsCount(OfferPattern offerPattern) {
+        offerPatternRepository.save(offerPattern);
+    }
+
+
+    @Transactional
+    public OfferEntity deleteOfferPattern(OfferPattern offerPatternEntity) {
+        var offerPattern = offerPatternRepository.getOne(offerPatternEntity.getId());
+        var offerEntity = offerPatternEntity.getOfferEntity();
+        offerEntity.removePattern(offerPattern.getPatternEntity());
+        return save(offerEntity);
+    }
+
+    public void calculateOfferSummary(OfferEntity offer) {
+        offer.setMaterialsCost(financialService.materialCost(offer));
+        offer.setWorkDuration(Double.parseDouble(String.format("%.2f", financialService.workDuration(offer))));
+        offer.setWorkCost(financialService.workCost(offer));
+        offer.setTransportationCost(financialService.transportationCost(offer));
+        offer.setPriceWithoutVAT(financialService.offerPriceWithoutVAT(offer));
+        offer.setPriceWithVAT(financialService.calculatePriceWithVat(offer));
+        offer.setTotalPriceWithoutVAT(financialService.offerTotalPriceWithoutDPH(offer));
+        offer.setTotalPriceWithVAT(financialService.offerTotalPriceWithDPH(offer));
+    }
+
+    public void calculateOfferDetails(OfferEntity offer) {
+        var firmSettings = offer.getFirmEntity().getFirmSettings();
+        offer.getOfferPatterns().forEach(it -> {
+            it.setMaterialsCost(it.getPatternEntity().getPriceWithoutVAT().multiply(BigDecimal.valueOf(it.getCount())));
+            it.setWorkCost(BigDecimal.valueOf(it.getPatternEntity().getDuration() * it.getCount() * firmSettings.getWorkingHours()));
+        });
     }
 }

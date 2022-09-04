@@ -4,8 +4,8 @@ import com.example.application.persistence.entity.UserEntity;
 import com.example.application.service.AuthorityService;
 import com.example.application.service.FirmService;
 import com.example.application.service.UserService;
-import com.example.application.ui.views.admin.user.UserForm;
-import com.example.application.ui.views.admin.user.UsersView;
+import com.example.application.ui.views.settings.admin.user.UserForm;
+import com.example.application.ui.views.settings.admin.user.UsersView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.ListDataProvider;
@@ -24,13 +24,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 class UsersViewTest {
 
-    private final UI          ui = new UI();
+    private final UI               ui = new UI();
     @Autowired
-    private       UserService userService;
+    private       UserService      userService;
     @Autowired
-    private AuthorityService authorityService;
+    private       AuthorityService authorityService;
     @Autowired
-    private FirmService firmService;
+    private       FirmService      firmService;
 
     private UsersView usersView;
 
@@ -81,7 +81,6 @@ class UsersViewTest {
         usersView.getUsernameFilter().setValue("tester123");
 
         assertEquals(3, (int) grid.getDataProvider().fetch(new Query<>()).count());
-        usersView.getFilterButton().click();
 
         assertEquals(1, (int) grid.getDataProvider().fetch(new Query<>()).count());
     }

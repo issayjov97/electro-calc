@@ -1,0 +1,16 @@
+.body {
+    font-family: Tahoma;
+    font-size: 12px;
+    color: #333333;
+    background-color: #FFFFFF;
+}
+
+.table {
+    width: 595px;
+    font-size: 12px;
+}
+
+.title {
+    font-size: 14px;
+    font-weight: bold;
+}

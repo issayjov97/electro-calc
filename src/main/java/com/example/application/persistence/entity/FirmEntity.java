@@ -7,7 +7,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,16 +16,18 @@ import java.util.Set;
 @Table(name = "firms")
 public class FirmEntity extends AbstractEntity {
 
-    private String name;
-    private String street;
-    private String postCode;
-    private String city;
-    private String state;
-    private String CIN;
-    private String VATIN;
-    private String phone;
-    private String mobile;
-    private String email;
+    private String  name;
+    private String  street;
+    private String  postCode;
+    private String  city;
+    private String  state;
+    private String  CIN;
+    private String  VATIN;
+    private String  phone;
+    private String  mobile;
+    private String  email;
+    private boolean copyDefaultPatterns = true;
+
 
     @OneToMany(
             mappedBy = "firmEntity",
@@ -50,39 +52,20 @@ public class FirmEntity extends AbstractEntity {
 
     @OneToMany(
             mappedBy = "firmEntity",
-            orphanRemoval = true,
-            cascade = CascadeType.ALL
-    )
-    private Set<OrderEntity> orders;
-
-    @OneToMany(
-            mappedBy = "firmEntity",
-            orphanRemoval = true,
-            cascade = CascadeType.ALL
-    )
-    private Set<DemandEntity> demands;
-
-    @OneToMany(
-            mappedBy = "firmEntity",
-            orphanRemoval = true,
-            cascade = CascadeType.ALL
-    )
-    private Set<JobOrderEntity> jobOrderEntities;
-
-    @OneToMany(
-            mappedBy = "firmEntity",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    @OrderBy("PLU ASC")
     Set<PatternEntity> patterns = new HashSet<>();
 
-    @ManyToMany( cascade = {CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
             name = "firm_pattern",
             joinColumns = @JoinColumn(name = "firm_id"),
             inverseJoinColumns = @JoinColumn(name = "pattern_id"))
     private Set<PatternEntity> defaultPatterns;
+
+    @OneToOne(cascade = {CascadeType.ALL}, mappedBy = "firmEntity")
+    private FirmSettingsEntity firmSettings;
 
     public Set<PatternEntity> getDefaultPatterns() {
         return defaultPatterns;
@@ -92,24 +75,9 @@ public class FirmEntity extends AbstractEntity {
         this.defaultPatterns = defaultPatterns;
     }
 
-    public void addOrder(OrderEntity orderEntity) {
-        this.orders.add(orderEntity);
-        orderEntity.setFirmEntity(this);
-    }
-
-    public void removeOrder(OrderEntity orderEntity) {
-        this.orders.remove(orderEntity);
-        orderEntity.setFirmEntity(null);
-    }
-
-    public void addDemand(DemandEntity demandEntity) {
-        this.demands.add(demandEntity);
-        demandEntity.setFirmEntity(this);
-    }
-
-    public void removeDemand(DemandEntity demandEntity) {
-        this.demands.remove(demandEntity);
-        demandEntity.setFirmEntity(null);
+    public void addFirmSettings(FirmSettingsEntity firmSettingsEntity) {
+        this.firmSettings = firmSettingsEntity;
+        firmSettingsEntity.setFirmEntity(this);
     }
 
     public void addOffer(OfferEntity offerEntity) {
@@ -139,16 +107,7 @@ public class FirmEntity extends AbstractEntity {
 
     public void removeDefaultPattern(PatternEntity patternEntity) {
         this.defaultPatterns.remove(patternEntity);
-        patternEntity.setFirmEntity(null);
-    }
-
-
-    public Set<JobOrderEntity> getJobOrderEntities() {
-        return jobOrderEntities;
-    }
-
-    public void setJobOrderEntities(Set<JobOrderEntity> jobOrderEntities) {
-        this.jobOrderEntities = jobOrderEntities;
+        patternEntity.getFirmEntities().remove(this);
     }
 
     public Set<CustomerEntity> getCustomerEntities() {
@@ -247,27 +206,27 @@ public class FirmEntity extends AbstractEntity {
         this.offers = offers;
     }
 
-    public Set<OrderEntity> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(Set<OrderEntity> orders) {
-        this.orders = orders;
-    }
-
-    public Set<DemandEntity> getDemands() {
-        return demands;
-    }
-
-    public void setDemands(Set<DemandEntity> demands) {
-        this.demands = demands;
-    }
-
     public Set<PatternEntity> getPatterns() {
         return patterns;
     }
 
     public void setPatterns(Set<PatternEntity> patterns) {
         this.patterns = patterns;
+    }
+
+    public FirmSettingsEntity getFirmSettings() {
+        return firmSettings;
+    }
+
+    public void setFirmSettings(FirmSettingsEntity firmSettings) {
+        this.firmSettings = firmSettings;
+    }
+
+    public boolean isCopyDefaultPatterns() {
+        return copyDefaultPatterns;
+    }
+
+    public void setCopyDefaultPatterns(boolean copyDefaultPatterns) {
+        this.copyDefaultPatterns = copyDefaultPatterns;
     }
 }

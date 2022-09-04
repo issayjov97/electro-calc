@@ -1,68 +1,80 @@
 package com.example.application.ui.views.offer;
 
-import com.example.application.dto.DPH;
+import com.example.application.model.enums.OrderStatus;
 import com.example.application.persistence.entity.OfferEntity;
-import com.example.application.persistence.repository.FileRepository;
+import com.example.application.persistence.predicate.OfferSpecification;
+import com.example.application.service.AuthService;
 import com.example.application.service.CustomerService;
-import com.example.application.service.FinancialService;
-import com.example.application.service.JobOrderService;
 import com.example.application.service.OfferService;
 import com.example.application.service.PdfGenerateServiceImpl;
+import com.example.application.service.UserService;
 import com.example.application.ui.components.NotificationService;
 import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.MainView;
-import com.example.application.ui.views.customer.CustomersView;
 import com.example.application.ui.views.offer.events.DeleteEvent;
 import com.example.application.ui.views.offer.events.SaveEvent;
+import com.example.application.utils.FormattingUtils;
+import com.example.application.utils.UIUtils;
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyDownEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.LocalDateRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
-import com.vaadin.flow.router.Location;
+import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouteParameters;
-import com.vaadin.flow.router.WildcardParameter;
+import com.vaadin.flow.server.InputStreamFactory;
+import com.vaadin.flow.server.StreamResource;
+import org.springframework.core.convert.ConversionService;
 
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 
-@PageTitle("Offers")
+@PageTitle("Nabídky")
 @Route(value = "offers", layout = MainView.class)
-public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> implements HasUrlParameter<String> {
-    private final TextField            filterItem = new TextField();
-    private final OfferService         offerService;
-    private final CustomerService      customerService;
-    private final JobOrderService      jobOrderService;
-    private final Button               addButton  = new Button("Add offer");
-    private final OfferDocumentsDialog offerDocumentsDialog;
-    private final Span                 span       = new Span("Offers");
-    private final OfferForm            offerForm;
+public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> implements HasUrlParameter<Long> {
+    private final TextField              nameFilter   = new TextField();
+    private final ComboBox<OrderStatus>  statuses     = new ComboBox<>();
+    private final Button                 addButton    = new Button("Přidat nabídku");
+    private final Button                 filterButton = new Button("Najít");
+    private final Span                   span         = new Span("Nabídky");
+    private final OfferDetailsForm       offerDetailsForm;
+    private final OfferForm              offerForm;
+    private final ConversionService      conversionService;
+    private final OfferService           offerService;
+    private final UserService            userService;
+    private final PdfGenerateServiceImpl pdfGenerateService;
 
     public OffersView(
             OfferService offerService,
-            JobOrderService jobOrderService1, CustomerService customerService,
-            FileRepository fileRepository,
-            JobOrderService jobOrderService,
-            PdfGenerateServiceImpl pdfGenerateService
+            UserService userService,
+            PdfGenerateServiceImpl pdfGenerateService,
+            CustomerService customerService,
+            ConversionService conversionService
     ) {
-        super(new Grid<>(OfferEntity.class, false), offerService);
-        this.jobOrderService = jobOrderService1;
-        this.offerForm = new OfferForm(jobOrderService, customerService, pdfGenerateService);
+        super(new Grid<>(), offerService);
+        this.userService = userService;
+        this.pdfGenerateService = pdfGenerateService;
+        this.conversionService = conversionService;
+        this.offerForm = new OfferForm();
+        this.offerDetailsForm = new OfferDetailsForm(customerService);
         this.offerService = offerService;
-        this.customerService = customerService;
-        this.offerDocumentsDialog = new OfferDocumentsDialog(fileRepository);
-        addClassName("offers-view");
+        addClassName("paging-view");
         configureGrid();
         configureEvents();
         add(getToolBar(), getContent());
@@ -70,84 +82,88 @@ public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> i
 
     @Override
     protected void configureForm() {
-        offerForm.setWidth("25em");
+        offerDetailsForm.setWidth("25em");
     }
 
     @Override
     protected void configureGrid() {
         getItems().addClassName("items-grid");
-        getItems().setSizeFull();
-        getItems().setColumns("transportationCost", "materialsCost", "workHours", "createdAt");
-        getItems().addColumn(FinancialService::calculateServicePriceWithoutVAT).setHeader("Price without VAT");
-        getItems().addColumn(FinancialService::calculatePriceWithVat).setHeader("Price with VAT");
-        getItems().addColumn(FinancialService::calculatePriceWithVat).setHeader("Total price");
+        getItems().addColumn(OfferEntity::getName).setHeader("Nazev");
+        getItems().addColumn(e -> conversionService.convert(e.getWorkDuration(), String.class)).setHeader("Doba montáže");
+        getItems().addColumn(e -> conversionService.convert(e.getWorkCost(), String.class)).setHeader("Cena montáže");
+        getItems().addColumn(e -> conversionService.convert(e.getTransportationCost(), String.class)).setHeader("Cena dopravy");
+        getItems().addColumn(e -> conversionService.convert(e.getMaterialsCost(), String.class)).setHeader("Cena materiálů");
+        getItems().addColumn(new ComponentRenderer<>(e -> UIUtils.createDPHPrice(conversionService.convert(e.getTotalPriceWithoutVAT(), String.class), false)))
+                .setHeader("Celkem bez DPH");
+        getItems().addColumn(new ComponentRenderer<>(e -> UIUtils.createDPHPrice(conversionService.convert(e.getTotalPriceWithVAT(), String.class), true)))
+                .setHeader("Celkem s DPH");
+        getItems().addColumn(new LocalDateRenderer<>(OfferEntity::getCreatedDate, DateTimeFormatter.ofPattern("MMM dd, YYYY", FormattingUtils.APP_LOCALE)))
+                .setHeader("Datum vystavení");
+        getItems().addColumn(OfferEntity::getStatus).setHeader("Status");
         getItems().getColumns().forEach(itemColumn -> itemColumn.setAutoWidth(true));
-        getItems().setItems(offerService.getFirmOffers());
         getItems().asSingleSelect().addValueChangeListener(event -> {
             if (event.getValue() != null) {
-                offerForm.setEntity(event.getValue());
-                offerForm.open("Edit offer");
+                UI.getCurrent().navigate(OfferDetailsView.class, event.getValue().getId());
             }
         });
 
-        getItems().addComponentColumn((offer) -> {
-            Select<Integer> select = new Select<>();
-            select.setItems(DPH.getRates());
-            select.setValue(offer.getVAT());
-            select.addValueChangeListener(e -> {
-                offer.setVAT(select.getValue());
-                offerService.save(offer);
-                updateList();
-            });
-            return select;
-        }).setHeader("VAT");
+        getItems().addColumn(e -> e.getCustomerEntity() != null ? e.getCustomerEntity().getName() : "").setHeader("Zákaznik");
 
         getItems().addComponentColumn((offer) -> {
-            final Button patternDetailsButton = new Button("Details");
+            final Button patternDetailsButton = new Button();
+            patternDetailsButton.setIcon(VaadinIcon.EDIT.create());
             patternDetailsButton.addClickListener(e -> {
-                UI.getCurrent().navigate(OffersPatternsView.class, new RouteParameters("offerId", String.valueOf(offer.getId())));
+                UI.getCurrent().navigate(OfferDetailsView.class, offer.getId());
             });
-            return patternDetailsButton;
-        }).setHeader("Patterns");
+            Anchor download = new Anchor(new StreamResource("offer.pdf", (InputStreamFactory) () -> {
+                Map<String, Object> data = new HashMap<>();
+                data.put("title", "Nabídka");
+                data.put("customer", offer.getCustomerEntity());
+                data.put("firm", offer.getFirmEntity());
+                data.put("offer", offer);
+                data.put("patterns", offer.getPatterns());
+                data.put("settings", offer.getFirmEntity().getFirmSettings());
+                return pdfGenerateService.exportReceiptPdf("463480039", data);
+            }), "");
 
-        getItems().addComponentColumn((offer) -> {
-            final Button customerDetailsButton = new Button("Details");
-            customerDetailsButton.addClickListener(e -> {
-                if (offer.getCustomerEntity() != null)
-                    UI.getCurrent().navigate(CustomersView.class, offer.getCustomerEntity().getId());
-                else
-                    NotificationService.error("Customer is undefined");
-            });
-            return customerDetailsButton;
-        }).setHeader("Customer");
-
-
-        getItems().addComponentColumn((offer) -> {
-            final Button deleteButton = new Button("Attach");
-            deleteButton.addClickListener(e -> {
-                offerDocumentsDialog.setEntity(offer);
-                offerDocumentsDialog.open();
-            });
-            return deleteButton;
-        }).setHeader("Documents");
+            download.add(new Button(new Icon(VaadinIcon.DOWNLOAD_ALT)));
+            download.getElement().setAttribute("download", true);
+            return new HorizontalLayout(patternDetailsButton, download);
+        }).setHeader("Akce");
+        getItems().setItems(offerService.filter(getSpecification()));
     }
 
     @Override
     protected HorizontalLayout getToolBar() {
         span.setClassName("headline");
 
-        filterItem.getElement().setAttribute("theme", "test");
-        filterItem.setPlaceholder("Filter ...");
-        filterItem.setClearButtonVisible(true);
-        filterItem.setValueChangeMode(ValueChangeMode.LAZY);
+        nameFilter.getElement().setAttribute("theme", "test");
+        nameFilter.setPlaceholder("Název");
+        nameFilter.setClearButtonVisible(true);
+        nameFilter.setValueChangeMode(ValueChangeMode.LAZY);
+        nameFilter.addKeyDownListener(Key.ENTER, (ComponentEventListener<KeyDownEvent>) keyDownEvent -> updateList());
+
+        statuses.getElement().setAttribute("theme", "test");
+        statuses.setItems(OrderStatus.values());
+        statuses.setPlaceholder("Status nabídky");
+
+        addButton.setIcon(VaadinIcon.PLUS.create());
 
         addButton.addClickListener(e -> {
             getItems().asSingleSelect().clear();
             offerForm.setEntity(new OfferEntity());
-            offerForm.open("New offer");
+            offerForm.open("Nová nabídka");
         });
 
-        HorizontalLayout filterPart = new HorizontalLayout(filterItem, addButton);
+        filterButton.setIcon(VaadinIcon.SEARCH.create());
+        filterButton.addClickListener(e -> {
+            updateList();
+        });
+
+        HorizontalLayout filterPart = new HorizontalLayout(statuses, nameFilter, filterButton, addButton);
+        filterPart.setFlexGrow(1, nameFilter);
+        filterPart.setFlexGrow(1, statuses);
+
         filterPart.addClassName("filterPart");
 
         HorizontalLayout toolbar = new HorizontalLayout(span, filterPart);
@@ -158,8 +174,8 @@ public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> i
     @Override
     protected void configureEvents() {
         offerForm.addListener(SaveEvent.class, this::saveItem);
-        offerForm.addListener(CloseEvent.class, e -> closeEditor());
         offerForm.addListener(DeleteEvent.class, this::deleteItem);
+        offerForm.addListener(CloseEvent.class, e -> closeEditor());
     }
 
     @Override
@@ -172,40 +188,34 @@ public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> i
         offerService.save(event.getItem());
         updateList();
         closeEditor();
-        var notification = Notification.show("Offer was saved");
-        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-        notification.setPosition(Notification.Position.TOP_CENTER);
+        NotificationService.success();
     }
 
     @Override
     protected void updateList() {
-        getItems().setItems((offerService.getFirmOffers()));
+        getItems().setItems(offerService.filter(getSpecification()));
     }
 
     private void deleteItem(DeleteEvent event) {
-        span.setClassName("headline");
         offerService.delete(event.getItem());
         updateList();
         closeEditor();
-        var notification = Notification.show("Offer was deleted");
-        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-        notification.setPosition(Notification.Position.TOP_CENTER);
+        NotificationService.success();
     }
 
     @Override
-    public void setParameter(BeforeEvent beforeEvent, @WildcardParameter String parameter) {
-        Location location = beforeEvent.getLocation();
-        QueryParameters queryParameters = location.getQueryParameters();
-        Map<String, List<String>> parametersMap = queryParameters.getParameters();
-
-        if (parametersMap.containsKey("jobOrderId")) {
-            getItems().setItems(jobOrderService.getJobOrderWithOffers(Long.parseLong(parametersMap.get("jobOrderId").get(0))).getOfferEntities());
-        } else if (parametersMap.containsKey("customerId"))
-            customerService.load(Long.parseLong(parametersMap.get("customerId").get(0)));
+    public void setParameter(BeforeEvent beforeEvent, @OptionalParameter Long customerId) {
+        if (customerId != null)
+            getItems().setItems(offerService.getCustomerOffers(customerId));
     }
 
-    public TextField getFilterItem() {
-        return filterItem;
+    private OfferSpecification getSpecification() {
+        return new OfferSpecification(userService.getUserFirm(AuthService.getUsername()).getId(), nameFilter.getValue(), statuses.getValue());
+    }
+
+
+    public TextField getNameFilter() {
+        return nameFilter;
     }
 
     public Button getAddButton() {

@@ -12,27 +12,31 @@ import java.util.Set;
 
 public interface PatternRepository extends JpaRepository<PatternEntity, Long>, JpaSpecificationExecutor<PatternEntity> {
 
-    @Query("FROM PatternEntity p WHERE p.firmEntity.id IS NULL AND p.name NOT IN (?1) order by p.PLU")
+    @Query("FROM PatternEntity p WHERE p.firmEntity.id IS NULL AND p.name NOT IN (?1)")
     Set<PatternEntity> findDefaultPatternsNotIn(List<String> excludedPatterns);
 
-    @Query("FROM PatternEntity p WHERE p.firmEntity.id IS NULL order by p.PLU")
+    @Query("FROM PatternEntity p WHERE p.firmEntity.id IS NULL")
     Set<PatternEntity> findByDefaultPatternsFirmId();
 
-    @Query("FROM PatternEntity p WHERE p.firmEntity.id = ?1 order by p.PLU")
+    @Query("FROM PatternEntity p WHERE p.firmEntity.id = ?1")
     Set<PatternEntity> findFirmPatterns(Long id);
 
-    @Query("FROM PatternEntity p WHERE p.firmEntity.id = ?1 order by p.PLU")
+    @Query("FROM PatternEntity p WHERE p.firmEntity.id = ?1")
     Set<PatternEntity> findOrderPatterns(String userId);
 
-    PatternEntity findByName(String name);
+    @Query("FROM PatternEntity p WHERE p.firmEntity is null and p.name =?1 and p.description =?2 and p.duration = ?3")
+    PatternEntity findByName(String name, String description, double duration);
 
     List<PatternEntity> findAll(Specification<PatternEntity> specification);
 
-    @Query("SELECT COUNT(DISTINCT p.PLU) FROM PatternEntity p WHERE p.firmEntity.id = ?1 OR  p.firmEntity.id is null")
+    @Query("SELECT COUNT(p) FROM PatternEntity p WHERE p.firmEntity.id = ?1 OR  p.firmEntity.id is null")
     int count(Long firmId);
 
-    @EntityGraph(attributePaths = {"orders", "demands", "offers"})
+    @EntityGraph(attributePaths = {"offerPatterns", "firmEntities"})
     PatternEntity findFullPatternById(Long id);
+
+    @EntityGraph(attributePaths = {"firmEntities"})
+    PatternEntity findPatternWithFirmsById(Long id);
 
     @EntityGraph(attributePaths = {"offers"})
     PatternEntity findPatternWithOffersById(Long id);
@@ -40,10 +44,11 @@ public interface PatternRepository extends JpaRepository<PatternEntity, Long>, J
     @Override
     long count(Specification<PatternEntity> specification);
 
-    @Query("SELECT p FROM PatternEntity p JOIN FETCH p.firmEntities f WHERE f.id =?1")
+    @Query("SELECT p FROM PatternEntity p")
     Set<PatternEntity> findByDefaultPatternsFirmEntityId(Long id);
 
-    //
-//    @Query("select p from PatternEntity p join p. join i.documents d where c.customerNumber = ?1 and i.itemNumber = ?2 and d.validDate = ?3")
-//    Page<CustomerEntity> getCustomers(Pageable pageable);
+    @Override
+    @EntityGraph(attributePaths = {"firmEntity"})
+    PatternEntity getOne(Long aLong);
+
 }

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,10 +19,14 @@ import java.util.Set;
 public class PatternService implements FilterableCrudService<PatternEntity> {
     private final PatternRepository patternRepository;
     private final UserService       userService;
+    private final FirmService       firmService;
+    private final FinancialService  financialService;
 
-    public PatternService(PatternRepository patternRepository, UserService userService, UserService userService1) {
+    public PatternService(PatternRepository patternRepository, UserService userService, UserService userService1, FirmService firmService, FinancialService financialService) {
         this.patternRepository = patternRepository;
         this.userService = userService1;
+        this.firmService = firmService;
+        this.financialService = financialService;
     }
 
     @Override
@@ -30,43 +35,37 @@ public class PatternService implements FilterableCrudService<PatternEntity> {
     }
 
     @Override
+    @Transactional
     public PatternEntity save(PatternEntity entity) {
-        final var firm = userService.getUserFirm();
         if (PatternEntity.isDefaultPattern(entity)) {
-            entity = PatternMapper.convertToEntity(entity, firm);
+            var pattern = patternRepository.findPatternWithFirmsById(entity.getId());
+            if (!pattern.equals(entity)) {
+                var firm = firmService.getFirmWithDefaultPatterns();
+                firm.removeDefaultPattern(pattern);
+                entity = PatternMapper.convertToEntity(entity, firm);
+                entity.getFirmEntity().addPattern(entity);
+            }
         }
-        return FilterableCrudService.super.save(entity);
+        var savedPattern = FilterableCrudService.super.save(entity);
+        return patternRepository.getOne(savedPattern.getId());
+    }
+
+    public List<PatternEntity> saveAll(Collection<PatternEntity> patterns) {
+        return patternRepository.saveAll(patterns);
     }
 
     @Override
     @Transactional
     public void delete(PatternEntity entity) {
         var pattern = patternRepository.findFullPatternById(entity.getId());
-        pattern.getDemands().forEach(it -> it.removePattern(pattern));
-        pattern.getOrders().forEach(it -> it.removePattern(pattern));
-        pattern.getOffers().forEach(it -> it.removePattern(pattern));
-        pattern.getFirmEntity().removePattern(pattern);
-        FilterableCrudService.super.delete(pattern);
-    }
-
-    @Override
-    public void deleteById(long id) {
-        FilterableCrudService.super.deleteById(id);
-    }
-
-    @Override
-    public long count() {
-        return FilterableCrudService.super.count();
-    }
-
-    @Override
-    public PatternEntity load(long id) {
-        return FilterableCrudService.super.load(id);
-    }
-
-    @Override
-    public List<PatternEntity> loadAll() {
-        return FilterableCrudService.super.loadAll();
+        var firm = firmService.getFirmWithDefaultPatterns();
+        if (PatternEntity.isDefaultPattern(pattern)) {
+            firm.removeDefaultPattern(pattern);
+            firmService.save(firm);
+        } else {
+            firm.removePattern(pattern);
+            FilterableCrudService.super.delete(pattern);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -81,13 +80,13 @@ public class PatternService implements FilterableCrudService<PatternEntity> {
 
     @Transactional(readOnly = true)
     public Set<PatternEntity> getFirmDefaultPatterns() {
-        var firm = userService.getUserFirm();
+        var firm = userService.getUserFirm(AuthService.getUsername());
         return patternRepository.findByDefaultPatternsFirmEntityId(firm.getId());
     }
 
     @Transactional(readOnly = true)
     public Set<PatternEntity> getFirmPatterns() {
-        var firm = userService.getUserFirm();
+        var firm = userService.getUserFirm(AuthService.getUsername());
         return patternRepository.findFirmPatterns(firm.getId());
     }
 
@@ -101,15 +100,24 @@ public class PatternService implements FilterableCrudService<PatternEntity> {
         return new HashSet<>(patternRepository.findAll(specifications, PageRequest.of(offset / size, size)).getContent());
     }
 
+
+    public List<PatternEntity> filterTest(Specification<PatternEntity> specifications, int offset, int size) {
+        return patternRepository.findAll(specifications, PageRequest.of(offset / size, size)).getContent();
+    }
+
+
+    public List<PatternEntity> filterTest(Specification<PatternEntity> specifications) {
+        return patternRepository.findAll(specifications);
+    }
+
     @Transactional(readOnly = true)
     public Set<PatternEntity> filter(Specification<PatternEntity> specifications) {
         return new HashSet<>(patternRepository.findAll(specifications));
     }
 
-
     @Transactional(readOnly = true)
-    public PatternEntity getPattern(String name) {
-        return patternRepository.findByName(name);
+    public PatternEntity getPattern(PatternEntity patternEntity) {
+        return patternRepository.findByName(patternEntity.getName(), patternEntity.getDescription(), patternEntity.getDuration());
     }
 
     @Transactional(readOnly = true)

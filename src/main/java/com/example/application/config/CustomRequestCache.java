@@ -27,7 +27,6 @@ public class CustomRequestCache extends HttpSessionRequestCache {
                 return requestURI.startsWith("/") ? requestURI.substring(1) : requestURI; // (3)
             }
         }
-
         // if everything fails, redirect to the main view
         return "";
     }

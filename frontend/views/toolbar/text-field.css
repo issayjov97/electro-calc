@@ -2,3 +2,29 @@
     border-radius: 4px;
     background-color: white;
 }
+
+:host([theme="search"]) [part="input-field"] {
+    border-radius: 4px;
+    background-color: grey;
+}
+
+:host([theme="without-vat"]) [part="input-field"] {
+    color: white;
+    background-color: grey;
+}
+
+:host([theme="with-vat"]) [part="input-field"] {
+    color: white;
+    background-color: black;
+}
+
+:host([theme="with-vat"]) [part="input-field"] ::slotted(:not([part]):not(iron-icon):not(input):not(textarea)),
+:host([theme="without-vat"]) [part="input-field"] ::slotted(:not([part]):not(iron-icon):not(input):not(textarea)) {
+    color:white;
+    font-weight: 400;
+}
+{
+    color:white;
+    font-weight: 400;
+}
+

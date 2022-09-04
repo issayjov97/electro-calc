@@ -25,7 +25,7 @@ h1, h2 {
 
 .header {
     background-color: rgba(0, 0, 0, .75);
-    max-height: 70px;
+    max-height: 120px;
 }
 
 a {
@@ -44,6 +44,10 @@ a[highlight] {
 
 .items-grid {
     border-radius: 8px;
+    margin: 0 auto;
+    max-width: 1500px;
+    width: 100%;
+    height: 100%;
 }
 
 .login-view, .title {
@@ -64,7 +68,8 @@ vaadin-avatar {
 }
 
 .edit-form {
-    background-color: white;
+    background-color: rgba(255,255,255,0.96);
+    border-radius: 5px;
 }
 
 .form-title {
@@ -76,14 +81,16 @@ vaadin-avatar {
 
 .filterPart {
     width: 100%;
-    height: 100%;
-    justify-content: end;
+    justify-content: center;
 
 }
 
 .toolbar {
     width: 100%;
     align-items: center;
+    justify-content: center;
+    max-width: 1500px;
+    margin: 15px auto;
 }
 
 .headline {
@@ -92,6 +99,46 @@ vaadin-avatar {
     font-family: sans-serif;
 }
 
-.anchor-link, label {
+.anchor-link, label,inner-paging-view {
     color: black;
+}
+
+#forgotPasswordButton{
+    color: black;
+}
+.vaadin-vertical-layout{
+    width: 100%;
+}
+.success{
+    color: #0f9d58;
+}
+
+.cancel{
+    color: red;
+}
+
+.menu-link {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 37px;
+    transition: transform 300ms;
+}
+
+.menu-link:hover {
+    text-decoration: none;
+    color:lightgrey;
+}
+
+.menu-link span {
+    padding-left: 5px;
+}
+
+.menu-button {
+    margin: 0 60px;
+    font-size: 16px;
+}
+
+.edit-view, .offer-details{
+    margin: 15px auto;
+    max-width: 1500px;
 }

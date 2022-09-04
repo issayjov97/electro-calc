@@ -1,0 +1,3 @@
+:host([theme="test"]) [part="input-field"] {
+    background-color: white;
+}

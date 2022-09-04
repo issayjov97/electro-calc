@@ -13,5 +13,4 @@
 :host([theme="menu-button"]) [part="menu-bar-button"] {
     border-radius: 4px;
     background-color: #409515;
-
 }
