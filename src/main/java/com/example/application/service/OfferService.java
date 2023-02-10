@@ -11,17 +11,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class OfferService implements FilterableCrudService<OfferEntity> {
-    private final OfferRepository        offerRepository;
+    private final OfferRepository offerRepository;
     private final OfferPatternRepository offerPatternRepository;
-    private final UserService            userService;
-    private final FinancialService       financialService;
+    private final UserService userService;
+    private final FinancialService financialService;
 
     public OfferService(
             OfferRepository offerRepository,
@@ -66,13 +66,13 @@ public class OfferService implements FilterableCrudService<OfferEntity> {
 
     @Override
     public Set<OfferEntity> filter(Specification<OfferEntity> specifications) {
-        return new HashSet<>(offerRepository.findAll(specifications)).stream().peek(this::calculateOfferSummary)
+        return new LinkedHashSet<>(offerRepository.findAll(specifications)).stream().peek(this::calculateOfferSummary)
                 .collect(Collectors.toSet());
     }
 
     @Override
     public Set<OfferEntity> filter(Specification<OfferEntity> specifications, int offset, int size) {
-        return new HashSet<>(offerRepository.findAll(specifications, PageRequest.of(offset / size, size)).getContent())
+        return new LinkedHashSet<>(offerRepository.findAll(specifications, PageRequest.of(offset / size, size)).getContent())
                 .stream().peek(this::calculateOfferSummary)
                 .collect(Collectors.toSet());
     }
@@ -116,9 +116,9 @@ public class OfferService implements FilterableCrudService<OfferEntity> {
     }
 
     public void calculateOfferSummary(OfferEntity offer) {
-        offer.setMaterialsCost(financialService.materialCost(offer));
-        offer.setWorkDuration(Double.parseDouble(String.format("%.2f", financialService.workDuration(offer))));
-        offer.setWorkCost(financialService.workCost(offer));
+        offer.setMaterialsCost(financialService.summaryMaterialCost(offer));
+        offer.setWorkDuration(Double.parseDouble(String.format("%.2f", financialService.summaryWorkDuration(offer))));
+        offer.setWorkCost(financialService.summaryWorkCost(offer));
         offer.setTransportationCost(financialService.transportationCost(offer));
         offer.setPriceWithoutVAT(financialService.offerPriceWithoutVAT(offer));
         offer.setPriceWithVAT(financialService.calculatePriceWithVat(offer));
@@ -127,10 +127,9 @@ public class OfferService implements FilterableCrudService<OfferEntity> {
     }
 
     public void calculateOfferDetails(OfferEntity offer) {
-        var firmSettings = offer.getFirmEntity().getFirmSettings();
         offer.getOfferPatterns().forEach(it -> {
-            it.setMaterialsCost(it.getPatternEntity().getPriceWithoutVAT().multiply(BigDecimal.valueOf(it.getCount())));
-            it.setWorkCost(BigDecimal.valueOf(it.getPatternEntity().getDuration() * it.getCount() * firmSettings.getWorkingHours()));
+            it.setMaterialsCost(financialService.materialCost(it));
+            it.setWorkCost(financialService.workCost(it));
         });
     }
 }

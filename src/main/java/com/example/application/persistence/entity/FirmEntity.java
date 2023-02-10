@@ -16,32 +16,31 @@ import java.util.Set;
 @Table(name = "firms")
 public class FirmEntity extends AbstractEntity {
 
-    private String  name;
-    private String  street;
-    private String  postCode;
-    private String  city;
-    private String  state;
-    private String  CIN;
-    private String  VATIN;
-    private String  phone;
-    private String  mobile;
-    private String  email;
+    private String name;
+    private String street;
+    private String postCode;
+    private String city;
+    private String state;
+    private String CIN;
+    private String VATIN;
+    private String phone;
+    private String mobile;
+    private String email;
     private boolean copyDefaultPatterns = true;
 
+    @OneToMany(
+            mappedBy = "firmEntity",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private Set<CustomerEntity> customerEntities;
 
     @OneToMany(
             mappedBy = "firmEntity",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private final Set<CustomerEntity> customerEntities = new HashSet<>();
-
-    @OneToMany(
-            mappedBy = "firmEntity",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private final Set<UserEntity> users = new HashSet<>();
+    private Set<UserEntity> users;
 
     @OneToMany(
             mappedBy = "firmEntity",
@@ -55,7 +54,7 @@ public class FirmEntity extends AbstractEntity {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    Set<PatternEntity> patterns = new HashSet<>();
+    Set<PatternEntity> patterns ;
 
     @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(

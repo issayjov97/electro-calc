@@ -38,14 +38,14 @@ import java.util.Set;
 @CssImport(value = "./views/toolbar/text-field.css", themeFor = "vaadin-text-field")
 @Route(value = "customers", layout = MainView.class)
 public class CustomersView extends AbstractServicesView<CustomerEntity, CustomerEntity> implements HasUrlParameter<Long> {
-    private final TextField       nameFilter   = new TextField();
-    private final TextField       emailFilter  = new TextField();
+    private final TextField nameFilter = new TextField();
+    private final TextField emailFilter = new TextField();
     private final CustomerService customerService;
-    private final UserService     userService;
-    private final CustomerForm    customerForm;
-    private final Button          addButton    = new Button("Přidat zákazníka");
-    private final Button          filterButton = new Button("Najít");
-    private final Span            span         = new Span("Zákazníci");
+    private final UserService userService;
+    private final CustomerForm customerForm;
+    private final Button addButton = new Button("Přidat zákazníka");
+    private final Button filterButton = new Button("Najít");
+    private final Span span = new Span("Zákazníci");
 
     public CustomersView(CustomerService customerService, UserService userService) {
         super(new Grid<>(), customerService);
@@ -161,10 +161,11 @@ public class CustomersView extends AbstractServicesView<CustomerEntity, Customer
     }
 
     private void deleteItem(DeleteEvent event) {
-        customerService.delete(event.getItem());
-        updateList();
-        closeEditor();
-        NotificationService.success();
+            customerService.delete(event.getItem());
+            updateList();
+            closeEditor();
+            NotificationService.success();
+
     }
 
     @Override

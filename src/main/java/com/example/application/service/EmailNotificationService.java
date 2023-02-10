@@ -1,7 +1,7 @@
 package com.example.application.service;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -14,16 +14,17 @@ import javax.mail.MessagingException;
 @Service
 public class EmailNotificationService {
 
-    private final        JavaMailSender       javaMailSender;
-    private final        SpringTemplateEngine templateEngine;
-    private static final Logger               logger = LogManager.getLogger(EmailNotificationService.class);
+    private static final Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);
+
+    private final JavaMailSender javaMailSender;
+    private final SpringTemplateEngine templateEngine;
 
     EmailNotificationService(JavaMailSender javaMailSender, SpringTemplateEngine templateEngine) {
         this.javaMailSender = javaMailSender;
         this.templateEngine = templateEngine;
     }
 
-    public void sendEmail(String content, String to) {
+    public boolean sendEmail(String content, String to) {
         try {
             var mimeMessage = javaMailSender.createMimeMessage();
             var helper = new MimeMessageHelper(mimeMessage, true);
@@ -36,6 +37,8 @@ public class EmailNotificationService {
             javaMailSender.send(mimeMessage);
         } catch (MailException | MessagingException e) {
             logger.error("Failed to send email to {}", to, e);
+            return false;
         }
+        return true;
     }
 }

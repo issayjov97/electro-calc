@@ -13,15 +13,8 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 
 public class PatternSpecification implements Specification<PatternEntity> {
-    private Long   firmId;
+    private Long firmId;
     private String name;
-
-    public PatternSpecification() {
-    }
-
-    public PatternSpecification(Long firmId) {
-        this.firmId = firmId;
-    }
 
     public PatternSpecification(Long firmId, String name) {
         this.firmId = firmId;
@@ -39,7 +32,7 @@ public class PatternSpecification implements Specification<PatternEntity> {
         Predicate defaultPatternFirmPredicate = criteriaBuilder.equal(defaultEntities.get("id"), firmId);
         predicates.add(criteriaBuilder.or(firmEntities, defaultPatternFirmPredicate));
 
-        criteriaQuery.orderBy(criteriaBuilder.desc(criteriaBuilder.treat(root.get("firmEntity"), FirmEntity.class).get("id")));
+        criteriaQuery.orderBy(criteriaBuilder.desc(root.get("id")));
         return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
     }
 }

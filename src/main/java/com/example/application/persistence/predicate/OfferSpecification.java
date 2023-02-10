@@ -12,18 +12,9 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 
 public class OfferSpecification implements Specification<OfferEntity> {
-    private Long        firmId;
-    private String      name;
+    private Long firmId;
+    private String name;
     private OrderStatus status;
-
-    public OfferSpecification(Long firmId) {
-        this.firmId = firmId;
-    }
-
-    public OfferSpecification(Long firmId, String name) {
-        this.firmId = firmId;
-        this.name = name;
-    }
 
     public OfferSpecification(Long firmId, String name, OrderStatus status) {
         this.firmId = firmId;

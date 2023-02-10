@@ -10,12 +10,12 @@ import javax.persistence.Table;
 @Table(name = "firmSettings")
 public class FirmSettingsEntity extends AbstractEntity {
 
-    private double costPerKm     = 0;
-    private double dph           = 21.0;
+    private double costPerKm = 0;
+    private double dph = 21.0;
     private double chargePerHour = 0;
-    private double sale          = 0;
-    private double workingHours  = 1;
-    private int    incision      = 0;
+    private double sale = 0;
+    private double workingHours = 1;
+    private int incision = 0;
 
     @OneToOne(fetch = FetchType.LAZY)
     private FirmEntity firmEntity;

@@ -14,11 +14,11 @@ import com.vaadin.flow.data.binder.Binder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class ChangePasswordForm extends AbstractForm<UserEntity> {
-    private final UserService     userService;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final PasswordField   oldPassword     = new PasswordField("Aktuální heslo");
-    private final PasswordField   password        = new PasswordField("Nové heslo");
-    private final PasswordField   confirmPassword = new PasswordField("Zopakujte nové heslo");
+    private final PasswordField oldPassword = new PasswordField("Aktuální heslo");
+    private final PasswordField password = new PasswordField("Nové heslo");
+    private final PasswordField confirmPassword = new PasswordField("Zopakujte nové heslo");
 
     public ChangePasswordForm(UserService userService, PasswordEncoder passwordEncoder) {
         super(new BeanValidationBinder<>(UserEntity.class));
@@ -89,6 +89,5 @@ public class ChangePasswordForm extends AbstractForm<UserEntity> {
 
     @Override
     protected void validateAndSave() {
-
     }
 }

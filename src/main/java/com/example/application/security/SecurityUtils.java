@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 public final class SecurityUtils {
 
     private SecurityUtils() {
-        // Util methods only
     }
 
     public static boolean isFrameworkInternalRequest(HttpServletRequest request) {
@@ -35,12 +34,10 @@ public final class SecurityUtils {
     }
 
     public static boolean isAccessGranted(Class<?> securedClass) {
-        // Allow if no roles are required.
         Secured secured = AnnotationUtils.findAnnotation(securedClass, Secured.class);
         if (secured == null) {
             return true; // (1)
         }
-        // lookup needed role in user roles
         List<String> allowedRoles = Arrays.asList(secured.value());
         Authentication userAuthentication = SecurityContextHolder.getContext().getAuthentication();
         return userAuthentication.getAuthorities().stream() // (2)

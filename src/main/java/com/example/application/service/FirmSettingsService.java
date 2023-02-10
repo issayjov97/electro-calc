@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class FirmSettingsService implements CrudService<FirmSettingsEntity> {
-    private final UserService            userService;
+    private final UserService userService;
     private final FirmSettingsRepository firmSettingsRepository;
 
     public FirmSettingsService(UserService userService, FirmSettingsRepository firmSettingsRepository) {
@@ -28,7 +28,7 @@ public class FirmSettingsService implements CrudService<FirmSettingsEntity> {
     }
 
     @Transactional
-    @CacheEvict(value="firms", allEntries = true)
+    @CacheEvict(value = "firms", allEntries = true)
     @Override
     public FirmSettingsEntity save(FirmSettingsEntity entity) {
         var firm = userService.getUserFirm(AuthService.getUsername());

@@ -1,6 +1,7 @@
 package com.example.application.service;
 
 import com.example.application.persistence.entity.OfferEntity;
+import com.example.application.persistence.entity.OfferPattern;
 import com.example.application.persistence.entity.VATEntity;
 import org.springframework.stereotype.Service;
 
@@ -9,9 +10,8 @@ import java.math.RoundingMode;
 
 @Service
 public class FinancialService {
-    private final       FirmSettingsService firmSettingsService;
-    public static final BigDecimal          ONE_HUNDRED = new BigDecimal(100);
-
+    private final FirmSettingsService firmSettingsService;
+    public static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
 
     public FinancialService(FirmSettingsService firmSettingsService) {
         this.firmSettingsService = firmSettingsService;
@@ -20,24 +20,38 @@ public class FinancialService {
     public BigDecimal calculatePriceWithVat(VATEntity source) {
         final BigDecimal priceWithoutVat = source.getPriceWithoutVAT();
         final double rate = firmSettingsService.getFirmSettings().getDph() / 100.0;
-        final BigDecimal VAT = priceWithoutVat.multiply(new BigDecimal(rate)).setScale(2, RoundingMode.HALF_UP);
+        final BigDecimal VAT = priceWithoutVat.multiply(BigDecimal.valueOf(rate)).setScale(2, RoundingMode.HALF_UP);
         return priceWithoutVat.add(VAT);
     }
 
-    public BigDecimal materialCost(OfferEntity source) {
-        return source.getMaterialsCost().add(source.getPatterns().stream()
-                        .map(it -> it.getPatternEntity().getPriceWithoutVAT().multiply(BigDecimal.valueOf(it.getCount())))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add));
+    public BigDecimal summaryMaterialCost(OfferEntity source) {
+        return source.getOfferPatterns().stream()
+                .map(this::materialCost)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public BigDecimal workCost(OfferEntity source) {
+    public BigDecimal materialCost(OfferPattern offerPattern) {
+        var firmSettings = firmSettingsService.getFirmSettings();
+        var cost = offerPattern.getPatternEntity().getPriceWithoutVAT().multiply(BigDecimal.valueOf(offerPattern.getCount()));
+        if (offerPattern.getPatternEntity().getName().contains("kabel")) {
+            cost = cost.add(cost.multiply(BigDecimal.valueOf(firmSettings.getIncision())).divide(ONE_HUNDRED, 2, RoundingMode.HALF_UP));
+        }
+        return cost;
+    }
+
+    public BigDecimal summaryWorkCost(OfferEntity source) {
         var firmSettings = firmSettingsService.getFirmSettings();
         return BigDecimal.valueOf(source.getWorkDuration() / 60.0 * firmSettings.getChargePerHour());
     }
 
+    public BigDecimal workCost(OfferPattern source) {
+        var firmSettings = firmSettingsService.getFirmSettings();
+        return BigDecimal.valueOf(source.getPatternEntity().getDuration() / 60.0 * source.getCount() * firmSettings.getChargePerHour());
+    }
+
     public BigDecimal transportationCost(OfferEntity source) {
         var firmSettings = firmSettingsService.getFirmSettings();
-        var tmp = (int) Math.ceil((source.getWorkDuration() / firmSettings.getWorkingHours()));
+        var tmp = (int) Math.ceil((source.getWorkDuration() / 60.0 / firmSettings.getWorkingHours()));
         return BigDecimal.valueOf(source.getDistance() * tmp * firmSettings.getCostPerKm());
     }
 
@@ -65,9 +79,12 @@ public class FinancialService {
         return priceWithoutVAT.multiply(BigDecimal.valueOf(firmSettings.getSale())).divide(ONE_HUNDRED, RoundingMode.HALF_UP);
     }
 
-    public double workDuration(OfferEntity source) {
-        return source.getPatterns().stream()
-                .mapToDouble(e -> e.getPatternEntity().getDuration() * e.getCount()).sum();
+    public double summaryWorkDuration(OfferEntity source) {
+        return source.getOfferPatterns().stream().mapToDouble(this::workDuration).sum();
+    }
+
+    public double workDuration(OfferPattern offerPattern) {
+        return offerPattern.getPatternEntity().getDuration() * offerPattern.getCount();
     }
 }
 

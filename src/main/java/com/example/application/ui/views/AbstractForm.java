@@ -6,7 +6,6 @@ import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -16,12 +15,12 @@ import com.vaadin.flow.shared.Registration;
 
 public abstract class AbstractForm<E extends AbstractEntity> extends Div {
     protected final Binder<E> binder;
-    protected final Dialog    dialog;
-    protected final H2        headline;
-    protected final Button    saveButton;
-    protected final Button    cancelButton;
-    protected final Button    deleteButton;
-    private         E         entity;
+    protected final Dialog dialog;
+    protected final H2 headline;
+    protected final Button saveButton;
+    protected final Button cancelButton;
+    protected final Button deleteButton;
+    private E entity;
 
     public AbstractForm(Binder<E> validator) {
         this.headline = new H2();

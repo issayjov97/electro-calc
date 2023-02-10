@@ -10,8 +10,10 @@ import com.example.application.ui.views.settings.admin.firm.events.DeleteEvent;
 import com.example.application.ui.views.settings.admin.firm.events.SaveEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.security.access.annotation.Secured;
@@ -20,8 +22,8 @@ import org.springframework.security.access.annotation.Secured;
 @Secured("ADMIN")
 @Route(value = "Firms", layout = SettingsView.class)
 public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
-    private final FirmForm    firmForm  = new FirmForm();
-    private final Button      addButton = new Button("Přidat firmu");
+    private final FirmForm firmForm = new FirmForm();
+    private final Button addButton = new Button("Přidat firmu");
     private final FirmService firmService;
 
     public FirmsView(FirmService firmService) {
@@ -29,13 +31,17 @@ public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
         this.firmService = firmService;
         setSizeFull();
         configureGrid();
-        add(getToolBar(), getContent(), firmForm);
+        configureForm();
         configureEvents();
     }
 
     @Override
     protected void configureForm() {
-
+        final VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.setSizeFull();
+        verticalLayout.setClassName("admin-config-view");
+        verticalLayout.add(getToolBar(), getContent());
+        add(verticalLayout, firmForm);
     }
 
     @Override
@@ -58,6 +64,7 @@ public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
                 firmForm.open("Editace firmy");
             }
         });
+        getItems().addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS, GridVariant.LUMO_NO_BORDER);
     }
 
     @Override
@@ -67,10 +74,10 @@ public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
         addButton.addClickListener(e -> {
             getItems().asSingleSelect().clear();
             firmForm.setEntity(new FirmEntity());
-            firmForm.open("Přidat firmu");
+            firmForm.open("Nová firma");
         });
         HorizontalLayout toolbar = new HorizontalLayout(addButton);
-        toolbar.addClassName("filterPart");
+        toolbar.setJustifyContentMode(JustifyContentMode.START);
         return toolbar;
     }
 

@@ -13,8 +13,10 @@ import com.example.application.ui.views.settings.admin.user.events.DeleteEvent;
 import com.example.application.ui.views.settings.admin.user.events.SaveEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -26,25 +28,29 @@ import java.util.stream.Collectors;
 @Secured("ADMIN")
 @Route(value = "users", layout = SettingsView.class)
 public class UsersView extends AbstractServicesView<UserEntity, UserEntity> {
-    private final TextField   usernameFilter = new TextField();
-    private final UserForm    userForm;
-    private final Button      addButton      = new Button("Přidat uživatele");
+    private final TextField usernameFilter = new TextField();
+    private final UserForm userForm;
+    private final Button addButton = new Button("Přidat uživatele");
     private final UserService userService;
 
     public UsersView(UserService userService, AuthorityService authorityService, FirmService firmService) {
-        super(new  Grid<>(), userService);
+        super(new Grid<>(), userService);
         this.userService = userService;
         this.userForm = new UserForm(firmService);
         userForm.setAllAuthorities(authorityService.loadAll());
         setSizeFull();
         configureGrid();
         configureEvents();
-        add(getToolBar(), getContent(), userForm);
+        configureForm();
     }
 
     @Override
     protected void configureForm() {
-
+        final VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.setSizeFull();
+        verticalLayout.setClassName("admin-config-view");
+        verticalLayout.add(getToolBar(), getContent());
+        add(verticalLayout, userForm);
     }
 
     @Override
@@ -65,6 +71,7 @@ public class UsersView extends AbstractServicesView<UserEntity, UserEntity> {
             }
         });
         getItems().addColumn(e -> e.getAuthorityEntities().stream().map(AuthorityEntity::getName).collect(Collectors.joining(","))).setHeader("Role");
+        getItems().addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS, GridVariant.LUMO_NO_BORDER);
     }
 
     @Override
@@ -74,10 +81,10 @@ public class UsersView extends AbstractServicesView<UserEntity, UserEntity> {
         addButton.addClickListener(e -> {
             getItems().asSingleSelect().clear();
             userForm.setEntity(new UserEntity());
-            userForm.open("Přidat uživatele");
+            userForm.open("Nový uživatel");
         });
         HorizontalLayout toolbar = new HorizontalLayout(addButton);
-        toolbar.addClassName("filterPart");
+        toolbar.setJustifyContentMode(JustifyContentMode.START);
         return toolbar;
     }
 

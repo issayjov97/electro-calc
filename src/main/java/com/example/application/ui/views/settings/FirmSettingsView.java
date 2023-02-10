@@ -39,25 +39,25 @@ public class FirmSettingsView extends Div {
         final Binder<FirmSettingsEntity> binder = new BeanValidationBinder<>(FirmSettingsEntity.class);
         final FirmSettingsEntity firmSettingsEntity = firmSettingsService.getFirmSettings();
 
-        NumberField costPerKm = new NumberField("Cena za km(Kč)");
+        NumberField costPerKm = new NumberField("Cena za km (Kč)");
         costPerKm.setWidth("20%");
 
-        NumberField workingHours = new NumberField("Pracovní doba(hod)");
+        NumberField workingHours = new NumberField("Pracovní doba (hod)");
         workingHours.setWidth("20%");
 
-        IntegerField incision = new IntegerField("Prořez(%)");
+        IntegerField incision = new IntegerField("Prořez (%)");
         incision.setMin(0);
         incision.setMax(100);
         incision.setHasControls(true);
         incision.setWidth("20%");
 
-        NumberField dph = new NumberField("Hladina DPH(%)");
+        NumberField dph = new NumberField("Hladina DPH (%)");
         dph.setWidth("20%");
 
-        NumberField sale = new NumberField("Sleva(%)");
+        NumberField sale = new NumberField("Sleva (%)");
         sale.setWidth("20%");
 
-        NumberField costPerHour = new NumberField("Cena za hodinu(Kč)");
+        NumberField costPerHour = new NumberField("Cena za hodinu (Kč)");
         costPerHour.setWidth("20%");
 
         Button saveButton = new Button("Uložit");

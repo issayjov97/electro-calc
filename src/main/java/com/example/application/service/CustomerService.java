@@ -8,13 +8,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 @Service
 public class CustomerService implements FilterableCrudService<CustomerEntity> {
-    private final UserService        userService;
+    private final UserService userService;
     private final CustomerRepository customerRepository;
 
     public CustomerService(CustomerRepository customerRepository, UserService userService) {
@@ -25,7 +25,7 @@ public class CustomerService implements FilterableCrudService<CustomerEntity> {
     @Transactional(readOnly = true)
     public Set<CustomerEntity> findFirmCustomers() {
         var firm = userService.getUserFirm(AuthService.getUsername());
-        return customerRepository.findCustomersByFirmEntityId(firm.getId());
+        return customerRepository.findCustomersByFirmEntityIdOrderByName(firm.getId());
     }
 
     @Override
@@ -43,7 +43,7 @@ public class CustomerService implements FilterableCrudService<CustomerEntity> {
 
     @Override
     public void deleteById(long id) {
-        FilterableCrudService.super.deleteById(id);
+        customerRepository.deleteById(id);
     }
 
     @Override
@@ -64,19 +64,19 @@ public class CustomerService implements FilterableCrudService<CustomerEntity> {
     @Transactional(readOnly = true)
     public Set<CustomerEntity> getFirmCustomers() {
         var firm = userService.getUserFirm(AuthService.getUsername());
-        return customerRepository.findCustomersByFirmEntityId(firm.getId());
+        return customerRepository.findCustomersByFirmEntityIdOrderByName(firm.getId());
     }
 
     @Transactional(readOnly = true)
     @Override
     public Set<CustomerEntity> filter(Specification<CustomerEntity> specifications) {
-        return new HashSet<>(customerRepository.findAll(specifications));
+        return new LinkedHashSet<>(customerRepository.findAll(specifications));
     }
 
     @Transactional(readOnly = true)
     @Override
     public Set<CustomerEntity> filter(Specification<CustomerEntity> specifications, int offset, int size) {
-        return new HashSet<>(customerRepository.findAll(specifications, PageRequest.of(offset / size, size)).getContent());
+        return new LinkedHashSet<>(customerRepository.findAll(specifications, PageRequest.of(offset / size, size)).getContent());
     }
 
     @Transactional(readOnly = true)

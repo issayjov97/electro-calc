@@ -15,10 +15,10 @@ import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.validator.EmailValidator;
 
 public class CustomerForm extends AbstractForm<CustomerEntity> {
-    private final TextField nameField  = new TextField("Zkratka");
-    private final TextArea  emailField = new TextArea("Email");
+    private final TextField nameField = new TextField("Název");
+    private final TextArea emailField = new TextArea("Email");
     private final TextField phoneField = new TextField("Telefonní číslo");
-    private final TextArea  note       = new TextArea("Poznámka");
+    private final TextArea note = new TextArea("Poznámka");
 
     public CustomerForm() {
         super(new BeanValidationBinder<>(CustomerEntity.class));
@@ -47,7 +47,7 @@ public class CustomerForm extends AbstractForm<CustomerEntity> {
                 .bind(CustomerEntity::getPhone, CustomerEntity::setPhone);
 
         binder.forField(note)
-                .bind(CustomerEntity::getName, CustomerEntity::setNote);
+                .bind(CustomerEntity::getNote, CustomerEntity::setNote);
     }
 
     @Override

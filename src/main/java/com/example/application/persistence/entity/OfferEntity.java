@@ -28,33 +28,27 @@ public class OfferEntity extends VATEntity {
     private double distance = 0;
     @Column(columnDefinition = "TEXT")
     private String note;
-
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
-
-    private LocalDate  createdDate        = LocalDate.now();
+    private LocalDate createdDate = LocalDate.now();
     @Transient
     private BigDecimal transportationCost = BigDecimal.ZERO;
     @Transient
     private BigDecimal materialsCost = BigDecimal.ZERO;
     @Transient
-    private Double     workDuration  = 0.0;
-
+    private Double workDuration = 0.0;
     @Transient
     private BigDecimal workCost = BigDecimal.ZERO;
-
     @ManyToOne
     private CustomerEntity customerEntity;
-
     @ManyToOne
     private FirmEntity firmEntity;
-
     @OneToMany(
             mappedBy = "offerEntity",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private Set<OfferPattern> offerPatterns = new HashSet<>();
+    private Set<OfferPattern> offerPatterns;
 
     public void addPatterns(PatternEntity patternEntity, int count) {
         OfferPattern offerPattern = new OfferPattern();
@@ -72,7 +66,7 @@ public class OfferEntity extends VATEntity {
 
             if (offerPattern.getOfferEntity().equals(this) && offerPattern.getPatternEntity().equals(patternEntity)) {
                 iterator.remove();
-                offerPattern.getOfferEntity().getPatterns().remove(offerPattern);
+                offerPattern.getOfferEntity().getOfferPatterns().remove(offerPattern);
                 offerPattern.setOfferEntity(null);
                 offerPattern.setPatternEntity(null);
             }
@@ -103,7 +97,7 @@ public class OfferEntity extends VATEntity {
         this.firmEntity = firmEntity;
     }
 
-    public Set<OfferPattern> getPatterns() {
+    public Set<OfferPattern> getOfferPatterns() {
         return offerPatterns;
     }
 
@@ -175,9 +169,6 @@ public class OfferEntity extends VATEntity {
         this.description = description;
     }
 
-    public Set<OfferPattern> getOfferPatterns() {
-        return offerPatterns;
-    }
 
     public void setOfferPatterns(Set<OfferPattern> offerPatterns) {
         this.offerPatterns = offerPatterns;

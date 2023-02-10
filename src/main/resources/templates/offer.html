@@ -6,8 +6,8 @@
     <title>Cenová nabídka</title>
     <style>
         body {
-            font-family: Tahoma;
-            font-size: 12px;
+            font-family: Tahoma, sans-serif;
+            font-size: 14px;
             color: #333333;
             background-color: #FFFFFF;
         }
@@ -81,7 +81,7 @@
             <table>
                 <tbody>
                 <tr>
-                    <td class="date" th:text="'Datum vytvoření: '+${offer.createdDate}"></td>
+                    <td class="date" th:text="'Datum vytvoření: '+${createdDate}"></td>
                 </tr>
                 </tbody>
             </table>
@@ -93,22 +93,22 @@
                 </tr>
                 <tbody>
                 <tr>
-                    <td th:if="${customer != null}" class="basic-info">
+                    <td th:if="${customer != null}" class="basic-info" style="width:50%">
                         <p th:if="${customer.name}" th:text="${customer.name}">Jméno společnosti klienta</p>
                         <p th:if="${customer.email}" th:text="'Email: '+${customer.email}">Email:</p>
                         <p th:if="${customer.phone}" th:text="'Tel.: '+${customer.phone}">Tel.:</p>
                     </td>
                     <td class="basic-info">
                     </td>
-                    <td class="basic-info" th:if="${firm!=null}">
+                    <td class="basic-info" th:if="${firm!=null}" style="width:50%">
                         <p th:text="${firm.name}">Název
                             společnosti</p>
-                        <p  th:if="${firm.email}" th:text="'Email: ' + ${firm.email}">Email:</p>
-                        <p  th:if="${firm.phone}" th:text="'Telefon: ' + ${firm.phone}">Tel.:</p>
-                        <p  th:text="'Adresa: ' + ${firm.street}+ ', '+ ${firm.postCode} +' '+ ${firm.city} +', ' +${firm.state}">
+                        <p th:if="${firm.email}" th:text="'Email: ' + ${firm.email}">Email:</p>
+                        <p th:if="${firm.phone}" th:text="'Tel.: ' + ${firm.phone}">Tel.:</p>
+                        <p th:text="'Adresa: ' + ${firm.street}+ ', '+ ${firm.postCode} +' '+ ${firm.city} +', ' +${firm.state}">
                             Adresa</p>
-                        <p  th:if="${firm.CIN}" th:text="'IČ: ' + ${firm.CIN}">IČO</p>
-                        <p  th:if="${firm.VATIN}" th:text="'DIČ: ' + ${firm.VATIN}">DIČ</p>
+                        <p th:if="${firm.CIN}" th:text="'IČ: ' + ${firm.CIN}">IČO</p>
+                        <p th:if="${firm.VATIN}" th:text="'DIČ: ' + ${firm.VATIN}">DIČ</p>
                     </td>
                 </tr>
                 </tbody>
@@ -133,11 +133,11 @@
                     </td>
                     <td class="pattern">
                         <strong>Množství</strong></td>
-                    <td class="pattern"><strong>Cena</strong>
+                    <td class="pattern"><strong>Cena (Kč)</strong>
                     </td>
                     <td class="pattern"><strong>Popis</strong>
                     </td>
-                    <td class="pattern"><strong>Doba montáže</strong></td>
+                    <td class="pattern"><strong>Doba montáže (min)</strong></td>
                 </tr>
                 <tr style="display:none;">
                     <td colspan="*"></td>
@@ -162,30 +162,35 @@
                             <tr>
                                 <td th:text="'Cena montáže:'" style="text-align: right;">Cena celkem</td>
 
-                                <td th:text="${offer.workCost}+'Kč'" style="text-align: right;">500,00 Kč</td>
+                                <td th:text="${workCost}" style="text-align: right;">500,00 Kč</td>
                             </tr>
                             <tr>
                                 <td th:text="'Cena materiálu:'" style="text-align: right;">Cena materiálů:</td>
 
-                                <td th:text="${offer.materialsCost}+'Kč'" style="text-align: right;">500,00 Kč</td>
+                                <td th:text="${materialCost}" style="text-align: right;">500,00 Kč</td>
                             </tr>
                             <tr>
                                 <td th:text="'Cena dopravy:'" style="text-align: right;">Cena dopravy:</td>
 
-                                <td th:text="${offer.transportationCost}+'Kč'" style="text-align: right;">500,00 Kč</td>
+                                <td th:text="${transportationCost}" style="text-align: right;">500,00 Kč</td>
                             </tr>
                             <tr>
                                 <td th:text="'DPH:'" style="text-align: right">DPH</td>
-                                <td th:text="${settings.dph} + '%'" style="text-align: right">0,00 %</td>
+                                <td th:text="${settings.dph} + ' %'" style="text-align: right">0,00 %</td>
                             </tr>
                             <tr>
                                 <td th:text="'Sleva:'" style="text-align: right;">Sleva</td>
-                                <td th:text="${settings.sale}+'%'" style="text-align: right;">0,00 %</td>
+                                <td th:text="${settings.sale}+' %'" style="text-align: right;">0,00 %</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right; font-weight:700;"><b>Celkem k platbe bez DPH</b></td>
+                                <td th:text="${totalPriceWithoutVAT}" style="text-align: right; font-weight:700;"><b>500,00Kč</b>
+                                </td>
                             </tr>
                             <tr>
                                 <td style="text-align: right; font-weight:700;"><b>Celkem k platbe</b></td>
-                                <td th:text="${offer.totalPriceWithVAT}+'Kč'" style="text-align: right; font-weight:700;"><b>500,00
-                                    Kč</b></td>
+                                <td th:text="${totalPriceWithVAT}" style="text-align: right; font-weight:700;"><b>500,00Kč</b>
+                                </td>
                             </tr>
                             </tbody>
                         </table>

@@ -12,7 +12,4 @@ public class UIUtils {
             amountLabel.getStyle().set("color", "var(--lumo-success-text-color)");
         return amountLabel;
     }
-
-    public static void main(String[] args) {
-    }
 }

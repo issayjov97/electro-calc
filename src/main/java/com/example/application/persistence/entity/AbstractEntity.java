@@ -27,6 +27,6 @@ public abstract class AbstractEntity implements Serializable {
             return false;
         }
         AbstractEntity that = (AbstractEntity) o;
-        return  Objects.equals(id, that.id);
+        return Objects.equals(id, that.id);
     }
 }

@@ -82,7 +82,6 @@ vaadin-avatar {
 .filterPart {
     width: 100%;
     justify-content: center;
-
 }
 
 .toolbar {
@@ -141,4 +140,8 @@ vaadin-avatar {
 .edit-view, .offer-details{
     margin: 15px auto;
     max-width: 1500px;
+}
+
+.admin-config-view {
+    background-color: white;
 }

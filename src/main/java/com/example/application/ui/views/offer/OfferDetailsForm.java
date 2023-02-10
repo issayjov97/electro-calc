@@ -23,13 +23,13 @@ import com.vaadin.flow.data.binder.ValidationException;
 
 @CssImport(value = "./views/menu-bar.css", themeFor = "vaadin-menu-bar")
 public class OfferDetailsForm extends AbstractForm<OfferEntity> {
-    private final TextField                name            = new TextField("Název");
-    private final TextArea                 description     = new TextArea("Popis");
-    private final NumberField              distance        = new NumberField("Vzdalenost");
-    private final TextArea                 note            = new TextArea("Poznamka");
-    private final ComboBox<OrderStatus>    statuses        = new ComboBox<>("Status nabídky", OrderStatus.values());
-    private final ComboBox<CustomerEntity> customersSelect = new ComboBox<>();
-    private final CustomerService          customerService;
+    private final TextField name = new TextField("Název");
+    private final TextArea description = new TextArea("Popis");
+    private final NumberField distance = new NumberField("Vzdalenost");
+    private final TextArea note = new TextArea("Poznamka");
+    private final ComboBox<OrderStatus> statuses = new ComboBox<>("Status nabídky", OrderStatus.values());
+    private final ComboBox<CustomerEntity> customersSelect = new ComboBox<>("Zákazník");
+    private final CustomerService customerService;
 
     public OfferDetailsForm(CustomerService customerService) {
         super(new BeanValidationBinder<>(OfferEntity.class));
@@ -50,7 +50,7 @@ public class OfferDetailsForm extends AbstractForm<OfferEntity> {
         binder.forField(customersSelect)
                 .bind(OfferEntity::getCustomerEntity, OfferEntity::setCustomerEntity);
         binder.forField(note)
-                .bind(OfferEntity::getName, OfferEntity::setNote);
+                .bind(OfferEntity::getNote, OfferEntity::setNote);
         binder.forField(statuses)
                 .bind(OfferEntity::getStatus, OfferEntity::setStatus);
     }
@@ -80,8 +80,9 @@ public class OfferDetailsForm extends AbstractForm<OfferEntity> {
     }
 
     private void configureSelect() {
-        customersSelect.setLabel("Zákazník");
+        statuses.setClearButtonVisible(true);
         customersSelect.addClassName("label");
+        customersSelect.setClearButtonVisible(true);
         customersSelect.setItemLabelGenerator(CustomerEntity::getName);
         customersSelect.setItems(customerService.getFirmCustomers());
     }

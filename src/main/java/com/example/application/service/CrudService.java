@@ -30,7 +30,7 @@ public interface CrudService<T extends AbstractEntity> {
     }
 
     default T load(long id) {
-        return getRepository().findById(id).orElseThrow(EntityNotFoundException::new);
+        return getRepository().findById(id).orElseThrow(() -> new EntityNotFoundException("Firma " + id + " neexistuje"));
     }
 
     default List<T> loadAll() {

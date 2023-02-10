@@ -26,7 +26,6 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -35,6 +34,7 @@ import org.springframework.core.convert.ConversionService;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 @PageTitle("Items")
 @CssImport(value = "./views/toolbar/text-field.css")
@@ -42,29 +42,26 @@ import java.util.List;
 @Route(value = "items", layout = MainView.class)
 @RouteAlias(value = "", layout = MainView.class)
 public class PatternsView extends AbstractServicesView<PatternEntity, PatternEntity> {
-    private final PatternService    patternService;
-    private final FinancialService  financialService;
-    private final UserService       userService;
-    private final ImportService     importService;
-    private final Button            addButton    = new Button("Přidat položku");
-    private final Button            filterButton = new Button("Najít");
-    final         TextField         nameFilter   = new TextField();
-    private final Span              span         = new Span("Položky");
-    private final PatternForm       patternForm  = new PatternForm();
+    private final PatternService patternService;
+    private final FinancialService financialService;
+    private final UserService userService;
+    private final Button addButton = new Button("Přidat položku");
+    private final Button filterButton = new Button("Najít");
+    final TextField nameFilter = new TextField();
+    private final Span span = new Span("Položky");
+    private final PatternForm patternForm = new PatternForm();
     private final ConversionService conversionService;
 
     public PatternsView(
             PatternService patternService,
             FinancialService financialService,
             UserService userService,
-            ImportService importService,
             ConversionService conversionService
     ) {
         super(new Grid<>(), patternService);
         this.patternService = patternService;
         this.financialService = financialService;
         this.userService = userService;
-        this.importService = importService;
         this.conversionService = conversionService;
         configureEvents();
         configureGrid();
@@ -79,7 +76,7 @@ public class PatternsView extends AbstractServicesView<PatternEntity, PatternEnt
         getItems().addClassName("items-grid");
         getItems().addColumn(PatternEntity::getId).setHeader("Kód").setFlexGrow(0).setWidth("100px");
         getItems().addColumn(PatternEntity::getName).setHeader("Název").setComparator(Comparator.comparing(PatternEntity::getName));
-        getItems().addColumn(new ComponentRenderer<>(e -> UIUtils.createDPHPrice(conversionService.convert(e.getPriceWithoutVAT(), String.class), false)))
+        getItems().addColumn(e -> conversionService.convert(e.getPriceWithoutVAT(), String.class))
                 .setHeader("Cena bez DPH").
                 setFlexGrow(0)
                 .setWidth("150px");
@@ -101,7 +98,7 @@ public class PatternsView extends AbstractServicesView<PatternEntity, PatternEnt
                             int offset = query.getOffset();
                             int limit = query.getLimit();
                             query.getSortOrders();
-                            List<PatternEntity> items = patternService.filterTest(getSpecification(), offset, limit);
+                            Set<PatternEntity> items = patternService.filter(getSpecification(), offset, limit);
                             return items.stream();
                         },
                         query -> Math.toIntExact(patternService.countAnyMatching(getSpecification())));
@@ -129,9 +126,7 @@ public class PatternsView extends AbstractServicesView<PatternEntity, PatternEnt
         });
 
         filterButton.setIcon(VaadinIcon.SEARCH.create());
-        filterButton.addClickListener(e -> {
-            updateList();
-        });
+        filterButton.addClickListener(e -> updateList());
         HorizontalLayout filterPart = new HorizontalLayout(nameFilter, filterButton, addButton);
         filterPart.addClassName("filterPart");
         filterPart.setFlexGrow(1, nameFilter);
@@ -149,7 +144,7 @@ public class PatternsView extends AbstractServicesView<PatternEntity, PatternEnt
 
     @Override
     protected void updateList() {
-        getItems().setItems(patternService.filterTest(getSpecification()));
+        getItems().setItems(patternService.filter(getSpecification()));
     }
 
     @Override

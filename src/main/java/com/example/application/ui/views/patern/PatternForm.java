@@ -1,6 +1,5 @@
 package com.example.application.ui.views.patern;
 
-import com.example.application.converter.StringToLongConverter;
 import com.example.application.persistence.entity.PatternEntity;
 import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractForm;
@@ -17,12 +16,11 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 
-
 public class PatternForm extends AbstractForm<PatternEntity> {
-    private final TextField       nameField            = new TextField("Název");
-    private final TextArea        descriptionField     = new TextArea("Popis");
-    private final NumberField     durationField        = new NumberField("Delka práce(min)");
-    private final BigDecimalField priceWithoutVatField = new BigDecimalField("Cena bez DPH");
+    private final TextField nameField = new TextField("Název");
+    private final TextArea descriptionField = new TextArea("Popis");
+    private final NumberField durationField = new NumberField("Delka práce (min)");
+    private final BigDecimalField priceWithoutVatField = new BigDecimalField("Cena bez DPH (Kč)");
 
     public PatternForm() {
         super(new BeanValidationBinder<>(PatternEntity.class));

@@ -20,7 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @PageTitle("Personal info")
 @Route(value = "account", layout = SettingsView.class)
 public class ProfileView extends Div {
-    private final UserService        userService;
+    private final UserService userService;
     private final ChangePasswordForm changePasswordForm;
 
     public ProfileView(UserService userService, PasswordEncoder passwordEncoder) {
@@ -94,8 +94,8 @@ public class ProfileView extends Div {
                 validationException.printStackTrace();
             }
         });
-        changePassword.addClickListener(e->{
-           changePasswordForm.open("Změna hesla");
+        changePassword.addClickListener(e -> {
+            changePasswordForm.open("Změna hesla");
         });
         changePassword.setWidth("20%");
         saveButton.setWidth("20%");

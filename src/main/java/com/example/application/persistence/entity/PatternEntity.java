@@ -22,21 +22,21 @@ public class PatternEntity extends VATEntity {
     private String name;
     @Column(columnDefinition = "TEXT")
     private String description;
-    private Double duration = 0.0;
+    private Double duration = 0.00;
     private String measureUnit;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private FirmEntity firmEntity;
 
     @ManyToMany(mappedBy = "defaultPatterns")
-    private Set<FirmEntity> firmEntities  = new HashSet<>();
+    private Set<FirmEntity> firmEntities;
 
     @OneToMany(
             mappedBy = "patternEntity",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    Set<OfferPattern> offerPatterns = new HashSet<>();
+    Set<OfferPattern> offerPatterns;
 
     public FirmEntity getFirmEntity() {
         return firmEntity;
@@ -88,7 +88,8 @@ public class PatternEntity extends VATEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PatternEntity pattern = (PatternEntity) o;
-        return Objects.equals(name, pattern.name) &&
+        return  Objects.equals(getId(), pattern.getId()) &&
+                Objects.equals(name, pattern.name) &&
                 Objects.equals(description, pattern.description) &&
                 Objects.equals(duration, pattern.duration) &&
                 Objects.equals(getPriceWithoutVAT(), pattern.getPriceWithoutVAT());

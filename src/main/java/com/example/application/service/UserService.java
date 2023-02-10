@@ -18,7 +18,7 @@ import java.util.Set;
 
 @Service
 public class UserService implements CrudService<UserEntity> {
-    private final UserRepository  userRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     public UserService(
@@ -41,7 +41,7 @@ public class UserService implements CrudService<UserEntity> {
     }
 
     @Transactional
-    @CacheEvict(value="firms", allEntries = true)
+    @CacheEvict(value = "firms", allEntries = true)
     @Override
     public UserEntity save(UserEntity userEntity) {
         userEntity.setCreatedAt(LocalDateTime.now());
@@ -61,7 +61,7 @@ public class UserService implements CrudService<UserEntity> {
     @Cacheable(value = "firms", key = "#username")
     public FirmEntity getUserFirm(String username) {
         var user = userRepository.findBriefUserByUsername(username).orElseThrow(() -> {
-            throw new RuntimeException("User not found");
+            throw new EntityNotFoundException("User not found");
         });
         return user.getFirmEntity();
     }
@@ -69,7 +69,7 @@ public class UserService implements CrudService<UserEntity> {
     @Transactional(readOnly = true)
     public Set<AuthorityEntity> getUserAuthorities() {
         var user = userRepository.findBriefUserByUsername(AuthService.getUsername()).orElseThrow(() -> {
-            throw new RuntimeException("User not found");
+            throw new EntityNotFoundException("User not found");
         });
         return user.getAuthorityEntities();
     }

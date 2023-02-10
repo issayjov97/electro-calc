@@ -49,36 +49,36 @@ import org.springframework.core.convert.ConversionService;
 @CssImport(value = "./views/menu-bar.css", themeFor = "vaadin-menu-bar")
 @Route(value = "item", layout = MainView.class)
 public class OfferDetailsView extends AbstractServicesView<PatternEntity, PatternEntity> implements HasUrlParameter<Long> {
-    private final PatternService      patternService;
-    private final UserService         userService;
-    private final Button              filterButton         = new Button("Najít");
-    final         TextField           nameFilter           = new TextField();
-    private final Span                span                 = new Span("Položky");
-    private       Dialog              dialog               = new Dialog();
-    final         IntegerField        count                = new IntegerField("Počet");
-    private final Button              saveButton           = new Button("Uložit");
-    private final Button              saveCountButton      = new Button("Uložit");
-    private final Grid<OfferPattern>  grid                 = new Grid<>();
-    private final Binder<OfferEntity> binder               = new BeanValidationBinder<>(OfferEntity.class);
-    private final TextField           materialCost         = new TextField();
-    private final TextField           transportationCost   = new TextField();
-    private final TextField           workCost             = new TextField();
-    private final TextField           workHours            = new TextField();
-    private final TextField           totalPriceWithoutDPH = new TextField();
-    private final TextField           totalPriceWithDPH    = new TextField();
-    private final TextField           saleWithVAT          = new TextField();
-    private final TextField           saleWithoutVAT       = new TextField();
-    private final TextField           priceWithDPH         = new TextField();
-    private final TextField           priceWithoutDPH      = new TextField();
-    private final OfferDetailsForm    offerDetailsForm;
-    private final CustomerService     customerService;
-    private final FinancialService    financialService;
-    private final OfferService        offerService;
-    private       OfferEntity         offerEntity;
+    private final PatternService patternService;
+    private final UserService userService;
+    private final Button filterButton = new Button("Najít");
+    final TextField nameFilter = new TextField();
+    private final Span span = new Span("Položky");
+    private Dialog dialog = new Dialog();
+    final IntegerField count = new IntegerField("Počet");
+    private final Button saveButton = new Button("Uložit");
+    private final Button saveCountButton = new Button("Uložit");
+    private final Grid<OfferPattern> grid = new Grid<>();
+    private final Binder<OfferEntity> binder = new BeanValidationBinder<>(OfferEntity.class);
+    private final TextField materialCost = new TextField();
+    private final TextField transportationCost = new TextField();
+    private final TextField workCost = new TextField();
+    private final TextField workHours = new TextField();
+    private final TextField totalPriceWithoutDPH = new TextField();
+    private final TextField totalPriceWithDPH = new TextField();
+    private final TextField saleWithVAT = new TextField();
+    private final TextField saleWithoutVAT = new TextField();
+    private final TextField priceWithDPH = new TextField();
+    private final TextField priceWithoutDPH = new TextField();
+    private final OfferDetailsForm offerDetailsForm;
+    private final CustomerService customerService;
+    private final FinancialService financialService;
+    private final OfferService offerService;
+    private OfferEntity offerEntity;
 
-    private       PatternEntity       selectedPattern;
-    private       OfferPattern        selectedOfferPattern;
-    private final ConversionService   conversionService;
+    private PatternEntity selectedPattern;
+    private OfferPattern selectedOfferPattern;
+    private final ConversionService conversionService;
 
     public OfferDetailsView(
             PatternService patternService,
@@ -155,7 +155,7 @@ public class OfferDetailsView extends AbstractServicesView<PatternEntity, Patter
             if (selectedPattern != null) {
                 offerService.addOfferPattern(selectedPattern, offerEntity, count.getValue());
                 selectedPattern = null;
-                grid.setItems(offerEntity.getPatterns());
+                grid.setItems(offerEntity.getOfferPatterns());
             } else if (selectedOfferPattern != null) {
                 selectedOfferPattern.setCount(count.getValue());
                 offerService.updateOfferPatternsCount(selectedOfferPattern);
@@ -179,11 +179,11 @@ public class OfferDetailsView extends AbstractServicesView<PatternEntity, Patter
         headline.setWidthFull();
         HorizontalLayout header = new HorizontalLayout(headline);
         header.setWidthFull();
-        verticalLayout.add(header, configureOfferPatternsGrid(), offerDetailsForm, getOrderDetails());
+        verticalLayout.add(header, configureOfferPatternsGrid(), offerDetailsForm, new H3("Přehled objednávky"), getOrderDetails());
         main.add(getToolBar(), super.getContent(), verticalLayout);
         final HorizontalLayout horizontalLayout = new HorizontalLayout(main, verticalLayout);
         horizontalLayout.getStyle().set("background-color", "white");
-        horizontalLayout.setSizeFull();
+        horizontalLayout.setWidthFull();
         horizontalLayout.addClassName("offer-details");
         return horizontalLayout;
     }
@@ -215,8 +215,8 @@ public class OfferDetailsView extends AbstractServicesView<PatternEntity, Patter
         priceWthVATLabel.setWidth("120px");
 
         FormLayout formLayout = new FormLayout();
-        formLayout.addFormItem(workCost, "Cena montáže:");
-        formLayout.addFormItem(workHours, "Doba montáže:");
+        formLayout.addFormItem(workCost, "Cena práce:");
+        formLayout.addFormItem(workHours, "Doba práce:");
         formLayout.addFormItem(materialCost, "Cena materiálů:");
         formLayout.addFormItem(transportationCost, "Cena dopravy:");
         formLayout.addFormItem(priceWithoutDPH, "Cena před slevou:");
@@ -230,10 +230,11 @@ public class OfferDetailsView extends AbstractServicesView<PatternEntity, Patter
 
     public Component configureOfferPatternsGrid() {
         grid.setWidthFull();
+        grid.setMinHeight("300px");
         grid.addColumn(OfferPattern::getCount).setHeader("Počet").setFlexGrow(0).setWidth("80px");
         grid.addColumn(e -> e.getPatternEntity().getName()).setHeader("Název").setFlexGrow(0).setWidth("200px");
-        grid.addColumn(e -> conversionService.convert(e.getMaterialsCost(), String.class)).setHeader("Cena materiálů").setFlexGrow(0).setWidth("100px");
-        grid.addColumn(e -> conversionService.convert(e.getWorkCost(), String.class)).setHeader("Cena práce").setFlexGrow(0).setWidth("100px");
+        grid.addColumn(e -> conversionService.convert(e.getMaterialsCost(), String.class)).setHeader("Cena materiálů");
+        grid.addColumn(e -> conversionService.convert(e.getWorkCost(), String.class)).setHeader("Cena práce");
 
         grid.getColumns().forEach(itemColumn -> itemColumn.setAutoWidth(true));
         GridContextMenu<OfferPattern> menu = grid.addContextMenu();
@@ -241,14 +242,13 @@ public class OfferDetailsView extends AbstractServicesView<PatternEntity, Patter
             if (event.getItem().isPresent()) {
                 selectedOfferPattern = event.getItem().get();
                 dialog.open();
-                count.setValue(1);
             }
         });
         menu.addItem("Odstranit", event -> {
             var item = event.getItem();
             if (item.isPresent()) {
                 this.offerEntity = offerService.deleteOfferPattern(item.get());
-                grid.setItems(offerEntity.getPatterns());
+                grid.setItems(offerEntity.getOfferPatterns());
                 fillOfferSummary();
                 NotificationService.success();
             }
@@ -317,7 +317,7 @@ public class OfferDetailsView extends AbstractServicesView<PatternEntity, Patter
             this.offerEntity = offerService.getOfferWithFullPatterns(offerId);
             offerDetailsForm.setEntity(offerEntity);
             binder.readBean(offerEntity);
-            grid.setItems(offerEntity.getPatterns());
+            grid.setItems(offerEntity.getOfferPatterns());
             fillOfferSummary();
         }
     }

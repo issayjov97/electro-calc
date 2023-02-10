@@ -11,8 +11,8 @@ public class DurationToStringConverter implements Converter<Double, String> {
         int hours = (int) (duration / 60);
         int minutes = (int) (duration % 60);
         if (hours > 0)
-            tmp += hours + "h ";
-        tmp += minutes + "min";
+            tmp += hours + " h ";
+        tmp += minutes + " min";
         return tmp;
     }
 }

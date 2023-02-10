@@ -1,7 +1,6 @@
 package com.example.application.service;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +20,6 @@ public class AuthService {
                 .collect(Collectors.toList());
     }
 
-
     public static void replaceAuthentication(String username) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken(username, authentication.getCredentials(), authentication.getAuthorities()));
@@ -30,4 +28,5 @@ public class AuthService {
     public static boolean isAdmin() {
         return getAuthorities().stream().anyMatch(it -> it.equals("ADMIN"));
     }
+
 }

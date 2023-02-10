@@ -2,6 +2,7 @@ package com.example.application.ui.views;
 
 import com.example.application.service.AuthService;
 import com.example.application.service.ImportService;
+import com.example.application.ui.components.NotificationService;
 import com.example.application.ui.views.customer.CustomersView;
 import com.example.application.ui.views.login.LoginView;
 import com.example.application.ui.views.offer.OffersView;
@@ -30,6 +31,8 @@ import com.vaadin.flow.server.VaadinServletResponse;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.Lumo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
@@ -40,10 +43,11 @@ import java.util.List;
 @Theme(themeFolder = "flowcrmtutorial", value = Lumo.class)
 @CssImport(value = "./views/button.css", themeFor = "vaadin-button")
 public class MainView extends AppLayout {
+    private static Logger loger = LoggerFactory.getLogger(MainView.class);
     private final ImportService importService;
-    private final MenuBar       menuBar = new MenuBar();
-    private       Button        logoutButton;
-    private       Button        importButton;
+    private final MenuBar menuBar = new MenuBar();
+    private Button logoutButton;
+    private Button importButton;
 
     public MainView(ImportService importService) {
         this.importService = importService;
@@ -121,23 +125,14 @@ public class MainView extends AppLayout {
         upload.setAcceptedFileTypes("text/csv", ".csv");
         upload.addFinishedListener(e -> {
             InputStream inputStream = memoryBuffer.getInputStream();
-            importService.importPatterns(inputStream);
+            try {
+                importService.importPatterns(inputStream);
+            } catch (RuntimeException exception) {
+                loger.error("Import patterns",exception);
+                NotificationService.error(exception.getMessage());
+            }
         });
         upload.setUploadButton(importButton);
         return upload;
     }
-
-//    private Upload createUploadButton() {
-//        MemoryBuffer memoryBuffer = new MemoryBuffer();
-//
-//        Upload upload = new Upload(memoryBuffer);
-//        upload.setDropAllowed(false);
-//        upload.setAcceptedFileTypes("text/csv", ".csv");
-//        upload.addFinishedListener(e -> {
-//            InputStream inputStream = memoryBuffer.getInputStream();
-//            importService.importPatterns(inputStream);
-//        });
-//        upload.setUploadButton(importButton);
-//        return upload;
-//    }
 }

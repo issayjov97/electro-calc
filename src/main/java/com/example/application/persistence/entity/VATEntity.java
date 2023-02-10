@@ -8,13 +8,13 @@ import java.math.BigDecimal;
 @MappedSuperclass
 public abstract class VATEntity extends AbstractEntity {
 
-    private BigDecimal priceWithoutVAT      = BigDecimal.ZERO;
+    private BigDecimal priceWithoutVAT = BigDecimal.ZERO;
     @Transient
-    private BigDecimal priceWithVAT         = BigDecimal.ZERO;
+    private BigDecimal priceWithVAT = BigDecimal.ZERO;
     @Transient
     private BigDecimal totalPriceWithoutVAT = BigDecimal.ZERO;
     @Transient
-    private BigDecimal totalPriceWithVAT   = BigDecimal.ZERO;
+    private BigDecimal totalPriceWithVAT = BigDecimal.ZERO;
 
     public BigDecimal getPriceWithVAT() {
         return priceWithVAT;

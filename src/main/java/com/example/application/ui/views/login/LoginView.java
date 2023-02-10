@@ -29,10 +29,12 @@ import java.util.Date;
 @Route("login")
 @PageTitle("Rozpočet elektro")
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
-    private final LoginForm                login = new LoginForm();
-    private final UserService              userService;
+
+    private final LoginForm login = new LoginForm();
+    private final UserService userService;
     private final EmailNotificationService emailService;
-    private final PasswordEncoder          passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+
 
     public LoginView(
             AuthenticationManager authenticationManager,
@@ -55,15 +57,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         });
         add(appName, login);
         login.setAction("login");
-//        login.addLoginListener(e -> {
-//            try {
-//                final Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(e.getUsername(), e.getPassword()));
-//                SecurityContextHolder.getContext().setAuthentication(authentication);
-//                UI.getCurrent().navigate(PatternsView.class);
-//            } catch (AuthenticationException ex) {
-//                login.setError(true);
-//            }
-//        });
         configureLoginForm();
         changePasswordFlow();
     }
@@ -82,18 +75,18 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                     username.setErrorMessage("Zadejte spravné uživatelské jméno");
                     username.setInvalid(true);
                 } else {
-                    try {
-                        var otpField = new TextField("OTP");
-                        var confirmOTP = new Button("Zkontrolovat");
-                        var user = userService.getByUsername(username.getValue());
-                        var otp = new OneTimePasswordEntity();
-                        otp.setValue(RandomString.make(12));
-                        otp.setCreatedAt(new Date());
-                        user.setOneTimePassword(otp);
-                        emailService.sendEmail(otp.getValue(), user.getEmail());
+                    var otpField = new TextField("OTP");
+                    var confirmOTP = new Button("Zkontrolovat");
+                    var user = userService.getByUsername(username.getValue());
+                    var otp = new OneTimePasswordEntity();
+                    otp.setValue(RandomString.make(5));
+                    otp.setCreatedAt(new Date());
+                    user.setOneTimePassword(otp);
+                    var wasSend = emailService.sendEmail(otp.getValue(), user.getEmail());
+                    if (wasSend) {
                         userService.save(user);
                         vertical.removeAll();
-                        NotificationService.success("Byl odeslán e-mail s OTP");
+                        NotificationService.success("Na e-mail " + user.getEmail() + " byl odeslán OTP");
                         vertical.add(otpField, confirmOTP);
                         confirmOTP.addClickListener(click -> {
                             try {
@@ -109,9 +102,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
                             }
 
                         });
-                    } catch (RuntimeException ex) {
-                        NotificationService.error(ex.getMessage());
-                    }
+                    } else
+                        NotificationService.success("Na e-mail " + user.getEmail() + " nejde odeslat OTP");
+
                 }
             });
         });

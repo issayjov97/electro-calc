@@ -15,9 +15,8 @@ import com.vaadin.flow.data.binder.ValidationException;
 
 @CssImport(value = "./views/menu-bar.css", themeFor = "vaadin-menu-bar")
 public class OfferForm extends AbstractForm<OfferEntity> {
-    private final TextField name        = new TextField("Název");
+    private final TextField name = new TextField("Název");
     private final TextField description = new TextField("Popis");
-
 
     public OfferForm() {
         super(new BeanValidationBinder<>(OfferEntity.class));
@@ -30,7 +29,7 @@ public class OfferForm extends AbstractForm<OfferEntity> {
     @Override
     protected void setBinder() {
         binder.forField(name).asRequired("Název je povinný").withValidator(e ->
-                name.getValue().length() > 2, "Min 2 znáky")
+                        name.getValue().length() > 2, "Min 2 znáky")
                 .bind(OfferEntity::getName, OfferEntity::setName);
         binder.forField(description)
                 .bind(OfferEntity::getDescription, OfferEntity::setDescription);

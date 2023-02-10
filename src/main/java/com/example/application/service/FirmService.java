@@ -4,22 +4,25 @@ import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.persistence.entity.FirmSettingsEntity;
 import com.example.application.persistence.entity.PatternEntity;
 import com.example.application.persistence.repository.FirmRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Service
 public class FirmService implements FilterableCrudService<FirmEntity> {
-    private final UserService    userService;
+
+    private static final Logger logger = LoggerFactory.getLogger(FirmService.class);
+    private final UserService userService;
     private final FirmRepository firmRepository;
-    private final EntityManager  entityManager;
+    private final EntityManager entityManager;
 
     public FirmService(UserService userService, FirmRepository firmRepository, EntityManager entityManager) {
         this.userService = userService;
@@ -28,7 +31,7 @@ public class FirmService implements FilterableCrudService<FirmEntity> {
     }
 
     @Transactional
-    @CacheEvict(value="firms", allEntries = true)
+    @CacheEvict(value = "firms", allEntries = true)
     @Override
     public FirmEntity save(FirmEntity firmEntity) {
         if (firmEntity.getFirmSettings() == null)
@@ -77,7 +80,7 @@ public class FirmService implements FilterableCrudService<FirmEntity> {
 
     @Override
     public Set<FirmEntity> filter(Specification<FirmEntity> specifications) {
-        return new HashSet<>(firmRepository.findAll(specifications));
+        return new LinkedHashSet<>(firmRepository.findAll(specifications));
     }
 
     @Override
@@ -91,6 +94,7 @@ public class FirmService implements FilterableCrudService<FirmEntity> {
                     .setParameter("firmId", id);
             query.getSingleResult();
         } catch (Exception ex) {
+            logger.warn("CALL copy_patterns firmId {}", id, ex);
         }
     }
 }

@@ -2,7 +2,6 @@ package com.example.application.mapper;
 
 import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.persistence.entity.PatternEntity;
-import com.example.application.persistence.entity.UserEntity;
 
 public class PatternMapper {
 

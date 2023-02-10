@@ -48,16 +48,16 @@ import java.util.Map;
 @PageTitle("Nabídky")
 @Route(value = "offers", layout = MainView.class)
 public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> implements HasUrlParameter<Long> {
-    private final TextField              nameFilter   = new TextField();
-    private final ComboBox<OrderStatus>  statuses     = new ComboBox<>();
-    private final Button                 addButton    = new Button("Přidat nabídku");
-    private final Button                 filterButton = new Button("Najít");
-    private final Span                   span         = new Span("Nabídky");
-    private final OfferDetailsForm       offerDetailsForm;
-    private final OfferForm              offerForm;
-    private final ConversionService      conversionService;
-    private final OfferService           offerService;
-    private final UserService            userService;
+    private final TextField nameFilter = new TextField();
+    private final ComboBox<OrderStatus> statuses = new ComboBox<>();
+    private final Button addButton = new Button("Přidat nabídku");
+    private final Button filterButton = new Button("Najít");
+    private final Span span = new Span("Nabídky");
+    private final OfferDetailsForm offerDetailsForm;
+    private final OfferForm offerForm;
+    private final ConversionService conversionService;
+    private final OfferService offerService;
+    private final UserService userService;
     private final PdfGenerateServiceImpl pdfGenerateService;
 
     public OffersView(
@@ -111,19 +111,26 @@ public class OffersView extends AbstractServicesView<OfferEntity, OfferEntity> i
 
         getItems().addComponentColumn((offer) -> {
             final Button patternDetailsButton = new Button();
-            patternDetailsButton.setIcon(VaadinIcon.EDIT.create());
+            patternDetailsButton.setIcon(VaadinIcon.TRASH.create());
             patternDetailsButton.addClickListener(e -> {
-                UI.getCurrent().navigate(OfferDetailsView.class, offer.getId());
+                offerService.delete(offer);
+                updateList();
+                NotificationService.success();
             });
-            Anchor download = new Anchor(new StreamResource("offer.pdf", (InputStreamFactory) () -> {
+            Anchor download = new Anchor(new StreamResource("nabídka.pdf", (InputStreamFactory) () -> {
                 Map<String, Object> data = new HashMap<>();
                 data.put("title", "Nabídka");
                 data.put("customer", offer.getCustomerEntity());
                 data.put("firm", offer.getFirmEntity());
-                data.put("offer", offer);
-                data.put("patterns", offer.getPatterns());
+                data.put("createdDate", offer.getCreatedDate());
+                data.put("workCost", conversionService.convert(offer.getWorkCost(), String.class));
+                data.put("materialCost", conversionService.convert(offer.getMaterialsCost(), String.class));
+                data.put("transportationCost", conversionService.convert(offer.getTransportationCost(), String.class));
+                data.put("totalPriceWithoutVAT", conversionService.convert(offer.getTotalPriceWithoutVAT(), String.class));
+                data.put("totalPriceWithVAT", conversionService.convert(offer.getTotalPriceWithVAT(), String.class));
+                data.put("patterns", offer.getOfferPatterns());
                 data.put("settings", offer.getFirmEntity().getFirmSettings());
-                return pdfGenerateService.exportReceiptPdf("463480039", data);
+                return pdfGenerateService.exportPdf("offer", data);
             }), "");
 
             download.add(new Button(new Icon(VaadinIcon.DOWNLOAD_ALT)));

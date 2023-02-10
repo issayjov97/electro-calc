@@ -22,12 +22,10 @@ public class CustomRequestCache extends HttpSessionRequestCache {
         SavedRequest savedRequest = getRequest(VaadinServletRequest.getCurrent().getHttpServletRequest(), VaadinServletResponse.getCurrent().getHttpServletResponse());
         if(savedRequest instanceof DefaultSavedRequest) {
             final String requestURI = ((DefaultSavedRequest) savedRequest).getRequestURI(); // (1)
-            // check for valid URI and prevent redirecting to the login view
             if (requestURI != null && !requestURI.isEmpty() && !requestURI.contains("login")) { // (2)
                 return requestURI.startsWith("/") ? requestURI.substring(1) : requestURI; // (3)
             }
         }
-        // if everything fails, redirect to the main view
         return "";
     }
 }
