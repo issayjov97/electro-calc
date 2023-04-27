@@ -3,7 +3,6 @@ package com.example.application.ui.views.settings.admin.user;
 import com.example.application.persistence.entity.AuthorityEntity;
 import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.persistence.entity.UserEntity;
-import com.example.application.service.FirmService;
 import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractForm;
 import com.example.application.ui.views.settings.admin.user.events.DeleteEvent;
@@ -14,7 +13,6 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -27,23 +25,23 @@ import java.util.List;
 
 
 public class UserForm extends AbstractForm<UserEntity> {
-    private       List<AuthorityEntity>          allAuthorities = new ArrayList<>();
-    private final TextField                      username       = new TextField("Uživatelské jméno");
-    private final TextField                       firstName      = new TextField("Jméno");
-    private final TextField                      lastName       = new TextField("Přijmení");
-    private final EmailField                     email          = new EmailField("Email");
-    private final PasswordField        password = new PasswordField("Heslo");
-    private final ComboBox<FirmEntity> firms    = new ComboBox<>();
-    private final Checkbox             enabled  = new Checkbox("Povoleno");
-    private final CheckboxGroup<AuthorityEntity> authorities    = new CheckboxGroup<>();
-    private final FirmService                    firmService;
+    private List<AuthorityEntity> allAuthorities = new ArrayList<>();
+    private final TextField username = new TextField("Uživatelské jméno");
+    private final TextField firstName = new TextField("Jméno");
+    private final TextField lastName = new TextField("Přijmení");
+    private final EmailField email = new EmailField("Email");
+    private final PasswordField password = new PasswordField("Heslo");
+    private final ComboBox<FirmEntity> firmsSelect = new ComboBox<>();
+    private final Checkbox enabled = new Checkbox("Povoleno");
+    private final CheckboxGroup<AuthorityEntity> authoritiesSelect = new CheckboxGroup<>();
+    private final List<FirmEntity> firmEntities;
 
-    public UserForm(FirmService firmService) {
+    public UserForm(List<FirmEntity> firmEntities) {
         super(new BeanValidationBinder<>(UserEntity.class));
-        this.firmService = firmService;
-        authorities.setSizeFull();
-        authorities.setItemLabelGenerator(AuthorityEntity::getName);
-        authorities.addSelectionListener(e -> {
+        this.firmEntities = firmEntities;
+        authoritiesSelect.setSizeFull();
+        authoritiesSelect.setItemLabelGenerator(AuthorityEntity::getName);
+        authoritiesSelect.addSelectionListener(e -> {
             if (!e.getAllSelectedItems().isEmpty()) {
                 getEntity().setAuthorityEntities(e.getAllSelectedItems());
             }
@@ -57,8 +55,8 @@ public class UserForm extends AbstractForm<UserEntity> {
     protected void setBinder() {
         binder.forField(username).asRequired("Uživatelské jméno je povinné")
                 .withValidator(
-                        name -> name.length() >= 6,
-                        "Min 6 znáků"
+                        name -> name.length() >= 4,
+                        "Min 4 znáků"
                 )
                 .bind(UserEntity::getUsername, UserEntity::setUsername);
 
@@ -90,15 +88,15 @@ public class UserForm extends AbstractForm<UserEntity> {
         binder.forField(enabled)
                 .bind(UserEntity::getEnabled, UserEntity::setEnabled);
 
-        binder.forField(firms).asRequired("Údaje o firmě jsou povinná")
+        binder.forField(firmsSelect).asRequired("Údaje o firmě jsou povinná")
                 .bind(UserEntity::getFirmEntity, UserEntity::setFirmEntity);
-        binder.forField(authorities).asRequired("Role je povinná")
+        binder.forField(authoritiesSelect).asRequired("Role je povinná")
                 .bind(UserEntity::getAuthorityEntities, UserEntity::setAuthorityEntities);
     }
 
     @Override
     protected VerticalLayout createDialogLayout() {
-        VerticalLayout fieldLayout = new VerticalLayout(username, firstName, lastName, email, password, firms, authorities, enabled);
+        VerticalLayout fieldLayout = new VerticalLayout(username, firstName, lastName, email, password, firmsSelect, authoritiesSelect, enabled);
         fieldLayout.setSpacing(false);
         fieldLayout.setPadding(false);
         fieldLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
@@ -112,9 +110,9 @@ public class UserForm extends AbstractForm<UserEntity> {
     }
 
     public void open(String title) {
-        authorities.setItems(allAuthorities);
+        authoritiesSelect.setItems(allAuthorities);
         if (getEntity() != null && getEntity().getAuthorityEntities() != null)
-            authorities.select(getEntity().getAuthorityEntities());
+            authoritiesSelect.select(getEntity().getAuthorityEntities());
         password.setEnabled(true);
         if (getEntity() != null && getEntity().getPassword() != null)
             password.setEnabled(false);
@@ -122,10 +120,10 @@ public class UserForm extends AbstractForm<UserEntity> {
     }
 
     private void configureSelect() {
-        firms.setLabel("Firmy");
-        firms.addClassName("label");
-        firms.setItemLabelGenerator(FirmEntity::getName);
-        firms.setItems(firmService.loadAll());
+        firmsSelect.setLabel("Firmy");
+        firmsSelect.addClassName("label");
+        firmsSelect.setItemLabelGenerator(FirmEntity::getName);
+        firmsSelect.setItems(firmEntities);
     }
 
     public void setAllAuthorities(List<AuthorityEntity> allAuthorities) {
@@ -134,10 +132,13 @@ public class UserForm extends AbstractForm<UserEntity> {
 
     @Override
     protected HorizontalLayout createButtonsLayout() {
+        HorizontalLayout buttonsMenu = new HorizontalLayout();
         saveButton.addClickListener(event -> validateAndSave());
         deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
         cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this, false)));
-        return new HorizontalLayout(saveButton, deleteButton, cancelButton);
+        buttonsMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        buttonsMenu.add(saveButton, deleteButton, cancelButton);
+        return buttonsMenu;
     }
 
     @Override
@@ -174,11 +175,15 @@ public class UserForm extends AbstractForm<UserEntity> {
         return enabled;
     }
 
-    public CheckboxGroup<AuthorityEntity> getAuthorities() {
-        return authorities;
+    public CheckboxGroup<AuthorityEntity> getAuthoritiesSelect() {
+        return authoritiesSelect;
     }
 
     public List<AuthorityEntity> getAllAuthorities() {
         return allAuthorities;
+    }
+
+    public ComboBox<FirmEntity> getFirmsSelect() {
+        return firmsSelect;
     }
 }

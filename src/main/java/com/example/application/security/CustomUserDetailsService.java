@@ -18,6 +18,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return UserMapper.convertToUser(userRepository.findFullUserByUsername(username).orElseThrow(()-> new RuntimeException("User does not exist")));
+        return UserMapper.convertToUser(userRepository.findFullUserByUsername(username));
     }
 }

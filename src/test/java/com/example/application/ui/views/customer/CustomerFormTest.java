@@ -10,13 +10,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CustomerFormTest {
-
-    final String name  = "test_customer123";
-    final String phone = "779654345";
-    final String email = "tester123@tester.cz";
+    private final String name  = "test_customer123";
+    private final String phone = "779654345";
+    private final String email = "tester123@tester.cz";
 
     @Test
-    public void formFieldsPopulated() {
+    void formFieldsPopulated() {
         CustomerForm customerForm = new CustomerForm();
         CustomerEntity customerEntity = getCustomer();
 
@@ -28,7 +27,7 @@ class CustomerFormTest {
     }
 
     @Test
-    public void saveEventHasCorrectValues() {
+    void saveEventHasCorrectValues() {
         CustomerForm customerForm = new CustomerForm();
         CustomerEntity customerEntity = new CustomerEntity();
         customerForm.setEntity(customerEntity);
@@ -50,7 +49,7 @@ class CustomerFormTest {
     }
 
     @Test
-    public void deleteEventHasCorrectValues() {
+    void deleteEventHasCorrectValues() {
         CustomerForm customerForm = new CustomerForm();
         CustomerEntity customerEntity = getCustomer();
         customerForm.setEntity(customerEntity);

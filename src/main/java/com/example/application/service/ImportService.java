@@ -4,7 +4,6 @@ import com.example.application.persistence.entity.PatternEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import javax.persistence.EntityNotFoundException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -16,7 +15,6 @@ import java.util.Scanner;
 public class ImportService {
 
     private static final Logger logger = LoggerFactory.getLogger(ImportService.class);
-
     private final FirmService firmService;
     private final PatternService patternService;
     private static final List<String> SKIP_TEXT = List.of("NULL");
@@ -42,6 +40,7 @@ public class ImportService {
                     patternEntityList.add(parsedPattern);
             }
             patternService.saveAll(patternEntityList);
+            firmService.enableCopyDefaultPatternsFeature();
         }
     }
 

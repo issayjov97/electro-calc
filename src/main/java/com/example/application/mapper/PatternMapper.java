@@ -5,6 +5,9 @@ import com.example.application.persistence.entity.PatternEntity;
 
 public class PatternMapper {
 
+    private PatternMapper() {
+    }
+
     public static PatternEntity convertToEntity(PatternEntity source, FirmEntity firmEntity) {
         final PatternEntity patternEntity = new PatternEntity();
         patternEntity.setName(source.getName());

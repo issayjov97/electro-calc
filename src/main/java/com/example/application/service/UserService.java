@@ -1,6 +1,5 @@
 package com.example.application.service;
 
-import com.example.application.persistence.entity.AuthorityEntity;
 import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.persistence.entity.UserEntity;
 import com.example.application.persistence.repository.UserRepository;
@@ -14,7 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
+
+import static com.example.application.config.EmbeddedCacheConfig.FIRMS_CACHE;
 
 @Service
 public class UserService implements CrudService<UserEntity> {
@@ -41,37 +42,31 @@ public class UserService implements CrudService<UserEntity> {
     }
 
     @Transactional
-    @CacheEvict(value = "firms", allEntries = true)
+    @CacheEvict(value = FIRMS_CACHE, allEntries = true)
     @Override
     public UserEntity save(UserEntity userEntity) {
         userEntity.setCreatedAt(LocalDateTime.now());
         if (userEntity.getId() == null)
             userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+        if (!Objects.equals(AuthService.getUsername(), userEntity.getUsername()))
+            AuthService.replaceAuthentication(userEntity.getUsername());
         return CrudService.super.save(userEntity);
     }
 
     @Transactional(readOnly = true)
     public UserEntity getByUsername(String username) {
-        return userRepository.findFullUserByUsername(username).orElseThrow(() -> {
-            throw new EntityNotFoundException("User not found");
-        });
+        var user = userRepository.findFullUserByUsername(username);
+        if (user == null)
+            throw new EntityNotFoundException("Uživatel nebyl nalezen");
+        return user;
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "firms", key = "#username")
+    @Cacheable(value = FIRMS_CACHE, key = "#username")
     public FirmEntity getUserFirm(String username) {
         var user = userRepository.findBriefUserByUsername(username).orElseThrow(() -> {
-            throw new EntityNotFoundException("User not found");
+            throw new EntityNotFoundException("Uživatel nebyl nalezen");
         });
         return user.getFirmEntity();
     }
-
-    @Transactional(readOnly = true)
-    public Set<AuthorityEntity> getUserAuthorities() {
-        var user = userRepository.findBriefUserByUsername(AuthService.getUsername()).orElseThrow(() -> {
-            throw new EntityNotFoundException("User not found");
-        });
-        return user.getAuthorityEntities();
-    }
-
 }

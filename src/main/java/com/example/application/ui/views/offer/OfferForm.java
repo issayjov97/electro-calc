@@ -29,7 +29,7 @@ public class OfferForm extends AbstractForm<OfferEntity> {
     @Override
     protected void setBinder() {
         binder.forField(name).asRequired("Název je povinný").withValidator(e ->
-                        name.getValue().length() > 2, "Min 2 znáky")
+                        name.getValue().length() >= 2, "Min 2 znáky")
                 .bind(OfferEntity::getName, OfferEntity::setName);
         binder.forField(description)
                 .bind(OfferEntity::getDescription, OfferEntity::setDescription);
@@ -52,10 +52,13 @@ public class OfferForm extends AbstractForm<OfferEntity> {
 
     @Override
     protected HorizontalLayout createButtonsLayout() {
+        HorizontalLayout buttonsMenu = new HorizontalLayout();
         saveButton.addClickListener(event -> validateAndSave());
         deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
         cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this, false)));
-        return new HorizontalLayout(saveButton, deleteButton, cancelButton);
+        buttonsMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        buttonsMenu.add(saveButton, deleteButton, cancelButton);
+        return buttonsMenu;
     }
 
     @Override
@@ -66,5 +69,13 @@ public class OfferForm extends AbstractForm<OfferEntity> {
         } catch (ValidationException e) {
             e.printStackTrace();
         }
+    }
+
+    public TextField getName() {
+        return name;
+    }
+
+    public TextField getDescription() {
+        return description;
     }
 }

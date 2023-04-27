@@ -4,5 +4,5 @@
 }
 
 :host([focused]:not([readonly])) [part="label"]{
-    color: #409515;
+    color: hsl(214, 85%, 54%);
 }

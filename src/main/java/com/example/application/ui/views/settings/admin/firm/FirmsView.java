@@ -1,5 +1,6 @@
 package com.example.application.ui.views.settings.admin.firm;
 
+import com.example.application.client.MFCRInfoClient;
 import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.service.FirmService;
 import com.example.application.ui.components.NotificationService;
@@ -8,12 +9,16 @@ import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.settings.SettingsView;
 import com.example.application.ui.views.settings.admin.firm.events.DeleteEvent;
 import com.example.application.ui.views.settings.admin.firm.events.SaveEvent;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.security.access.annotation.Secured;
@@ -22,13 +27,14 @@ import org.springframework.security.access.annotation.Secured;
 @Secured("ADMIN")
 @Route(value = "Firms", layout = SettingsView.class)
 public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
-    private final FirmForm firmForm = new FirmForm();
+    private FirmForm firmForm;
     private final Button addButton = new Button("Přidat firmu");
     private final FirmService firmService;
 
-    public FirmsView(FirmService firmService) {
+    public FirmsView(FirmService firmService, MFCRInfoClient mvcrInfoClient) {
         super(new Grid<>(), firmService);
         this.firmService = firmService;
+        this.firmForm = new FirmForm(mvcrInfoClient);
         setSizeFull();
         configureGrid();
         configureForm();
@@ -54,9 +60,6 @@ public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
         getItems().addColumn(FirmEntity::getEmail).setHeader("Email");
         getItems().addColumn(FirmEntity::getState).setHeader("Stát");
         getItems().addColumn(FirmEntity::getCity).setHeader("Město");
-        getItems().addColumn(FirmEntity::getStreet).setHeader("Ulice");
-        getItems().addColumn(FirmEntity::getPostCode).setHeader("PSČ");
-        getItems().addColumn(FirmEntity::getPhone).setHeader("Telefonní číslo");
         getItems().setItems(firmService.loadAll());
         getItems().asSingleSelect().addValueChangeListener(event -> {
             if (event.getValue() != null) {
@@ -64,13 +67,28 @@ public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
                 firmForm.open("Editace firmy");
             }
         });
-        getItems().addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS, GridVariant.LUMO_NO_BORDER);
+        getItems().addColumn(new ComponentRenderer<>(
+                firm -> {
+                    Checkbox checkbox = new Checkbox();
+                    checkbox.setValue(firm.isCopyDefaultPatterns());
+                    if (!firm.isCopyDefaultPatterns()) {
+                        checkbox.addValueChangeListener(e -> {
+                            firmService.copyDefaultPatterns(firm.getId());
+                            updateList();
+                        });
+                    } else
+                        checkbox.setEnabled(false);
+                    return checkbox;
+                })).setHeader("Má položky");
+        getItems().
+
+                addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS, GridVariant.LUMO_NO_BORDER);
     }
 
     @Override
     protected HorizontalLayout getToolBar() {
         addButton.setIcon(VaadinIcon.PLUS.create());
-
+        addButton.addClickShortcut(Key.KEY_A, KeyModifier.ALT);
         addButton.addClickListener(e -> {
             getItems().asSingleSelect().clear();
             firmForm.setEntity(new FirmEntity());
@@ -95,13 +113,7 @@ public class FirmsView extends AbstractServicesView<FirmEntity, FirmEntity> {
     }
 
     private void saveItem(SaveEvent event) {
-        var firm = firmService.save(event.getItem());
-        if (firm.isCopyDefaultPatterns()) {
-            firmService.copyDefaultPatterns(firm.getId());
-            firm = firmService.load(firm.getId());
-            firm.setCopyDefaultPatterns(false);
-            firmService.save(firm);
-        }
+        firmService.save(event.getItem());
         updateList();
         closeEditor();
         NotificationService.success();

@@ -1,9 +1,7 @@
 package com.example.application.ui.views;
 
 import com.example.application.persistence.entity.AbstractEntity;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
@@ -29,6 +27,9 @@ public abstract class AbstractForm<E extends AbstractEntity> extends Div {
         this.saveButton = new Button("Uložit");
         this.deleteButton = new Button("Odstranit");
         this.cancelButton = new Button("Zrušit");
+        this.saveButton.addClickShortcut(Key.KEY_S, KeyModifier.ALT);
+        this.cancelButton.addClickShortcut(Key.KEY_C, KeyModifier.ALT);
+        this.deleteButton.addClickShortcut(Key.DELETE);
     }
 
     protected abstract void setBinder();
@@ -53,10 +54,11 @@ public abstract class AbstractForm<E extends AbstractEntity> extends Div {
         binder.readBean(entity);
     }
 
-    protected abstract HorizontalLayout createButtonsLayout();
+    protected HorizontalLayout createButtonsLayout() {
+        return null;
+    }
 
     protected abstract void validateAndSave();
-
 
     public Dialog getDialog() {
         return dialog;

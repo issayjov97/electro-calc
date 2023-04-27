@@ -13,8 +13,8 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 
 public class PatternSpecification implements Specification<PatternEntity> {
-    private Long firmId;
-    private String name;
+    private final Long firmId;
+    private final String name;
 
     public PatternSpecification(Long firmId, String name) {
         this.firmId = firmId;

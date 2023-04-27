@@ -44,7 +44,10 @@
             font-size: 12px;
             width: 35%;
         }
-
+        .block {
+            font-size: 12px;
+            width: 10%;
+        }
         .date {
             width: 50px;
             height: 50px;
@@ -81,10 +84,12 @@
             <table>
                 <tbody>
                 <tr>
-                    <td class="date" th:text="'Datum vytvoření: '+${createdDate}"></td>
+                    <td class="date" th:text="'Datum vytvoření: '+${createdDate}">Datum vytvoření:</td>
                 </tr>
-                </tbody>
+                    </tbody>
             </table>
+            <br/>
+            <br/>
             <table>
                 <tr>
                     <th th:text="'Odběratel:'">Odberatel:</th>
@@ -98,16 +103,14 @@
                         <p th:if="${customer.email}" th:text="'Email: '+${customer.email}">Email:</p>
                         <p th:if="${customer.phone}" th:text="'Tel.: '+${customer.phone}">Tel.:</p>
                     </td>
-                    <td class="basic-info">
+                    <td class="block">
                     </td>
                     <td class="basic-info" th:if="${firm!=null}" style="width:50%">
-                        <p th:text="${firm.name}">Název
-                            společnosti</p>
+                        <p th:text="${firm.name}">Název společnosti</p>
                         <p th:if="${firm.email}" th:text="'Email: ' + ${firm.email}">Email:</p>
                         <p th:if="${firm.phone}" th:text="'Tel.: ' + ${firm.phone}">Tel.:</p>
-                        <p th:text="'Adresa: ' + ${firm.street}+ ', '+ ${firm.postCode} +' '+ ${firm.city} +', ' +${firm.state}">
-                            Adresa</p>
-                        <p th:if="${firm.CIN}" th:text="'IČ: ' + ${firm.CIN}">IČO</p>
+                        <p th:text="'Adresa: ' + ${firmAddress}">Adresa</p>
+                        <p th:if="${firm.CIN}" th:text="'IČO: ' + ${firm.CIN}">IČO</p>
                         <p th:if="${firm.VATIN}" th:text="'DIČ: ' + ${firm.VATIN}">DIČ</p>
                     </td>
                 </tr>

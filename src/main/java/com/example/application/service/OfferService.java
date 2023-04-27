@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,9 +77,9 @@ public class OfferService implements FilterableCrudService<OfferEntity> {
     }
 
     @Transactional
-    public void addOfferPattern(PatternEntity offerPattern, OfferEntity offer, int count) {
+    public void addOfferPattern(PatternEntity patternEntity, OfferEntity offer, int count, boolean value) {
         var offerEntity = offerRepository.getById(offer.getId());
-        offerEntity.addPatterns(offerPattern, count);
+        offerEntity.addPatterns(patternEntity, count, value);
         save(offerEntity);
     }
 
@@ -99,7 +98,8 @@ public class OfferService implements FilterableCrudService<OfferEntity> {
     }
 
     public Set<OfferEntity> getCustomerOffers(Long id) {
-        return offerRepository.getCustomerOffers(id);
+        return offerRepository.getCustomerOffers(id).stream().peek(this::calculateOfferSummary)
+                .collect(Collectors.toSet());
     }
 
     public void updateOfferPatternsCount(OfferPattern offerPattern) {
@@ -109,10 +109,10 @@ public class OfferService implements FilterableCrudService<OfferEntity> {
 
     @Transactional
     public OfferEntity deleteOfferPattern(OfferPattern offerPatternEntity) {
-        var offerPattern = offerPatternRepository.getOne(offerPatternEntity.getId());
-        var offerEntity = offerPatternEntity.getOfferEntity();
-        offerEntity.removePattern(offerPattern.getPatternEntity());
-        return save(offerEntity);
+        var offerPattern = offerPatternRepository.getById(offerPatternEntity.getId());
+        var offer = offerPatternEntity.getOfferEntity();
+        offer.removePattern(offerPattern.getPatternEntity());
+        return save(offer);
     }
 
     public void calculateOfferSummary(OfferEntity offer) {
@@ -122,8 +122,8 @@ public class OfferService implements FilterableCrudService<OfferEntity> {
         offer.setTransportationCost(financialService.transportationCost(offer));
         offer.setPriceWithoutVAT(financialService.offerPriceWithoutVAT(offer));
         offer.setPriceWithVAT(financialService.calculatePriceWithVat(offer));
-        offer.setTotalPriceWithoutVAT(financialService.offerTotalPriceWithoutDPH(offer));
-        offer.setTotalPriceWithVAT(financialService.offerTotalPriceWithDPH(offer));
+        offer.setTotalPriceWithoutVAT(financialService.offerTotalPriceWithoutVAT(offer));
+        offer.setTotalPriceWithVAT(financialService.offerTotalPriceWithVAT(offer));
     }
 
     public void calculateOfferDetails(OfferEntity offer) {

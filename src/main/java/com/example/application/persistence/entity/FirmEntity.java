@@ -15,7 +15,6 @@ import java.util.Set;
 @Entity
 @Table(name = "firms")
 public class FirmEntity extends AbstractEntity {
-
     private String name;
     private String street;
     private String postCode;
@@ -24,9 +23,8 @@ public class FirmEntity extends AbstractEntity {
     private String CIN;
     private String VATIN;
     private String phone;
-    private String mobile;
     private String email;
-    private boolean copyDefaultPatterns = true;
+    private boolean copyDefaultPatterns = false;
 
     @OneToMany(
             mappedBy = "firmEntity",
@@ -54,7 +52,7 @@ public class FirmEntity extends AbstractEntity {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    Set<PatternEntity> patterns ;
+    Set<PatternEntity> patterns;
 
     @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
@@ -175,14 +173,6 @@ public class FirmEntity extends AbstractEntity {
 
     public void setPhone(String phone) {
         this.phone = phone;
-    }
-
-    public String getMobile() {
-        return mobile;
-    }
-
-    public void setMobile(String mobile) {
-        this.mobile = mobile;
     }
 
     public String getEmail() {

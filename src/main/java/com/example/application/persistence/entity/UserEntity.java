@@ -24,13 +24,14 @@ public class UserEntity extends AbstractEntity {
     private Boolean enabled = true;
     private String password;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "firm_id")
     private FirmEntity firmEntity;
 
     @ManyToMany(cascade = {CascadeType.MERGE})
-    @JoinTable(name = "user_role",
+    @JoinTable(name = "user_authority",
             joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
+            inverseJoinColumns = @JoinColumn(name = "authority_id")
     )
     Set<AuthorityEntity> authorityEntities;
 
@@ -117,15 +118,16 @@ public class UserEntity extends AbstractEntity {
         this.oneTimePassword = oneTimePassword;
     }
 
+
     public boolean isOTPValid(String value) {
         if (this.oneTimePassword != null) {
             if (oneTimePassword.getCreatedAt().getTime() + (oneTimePasswordDuration) < System.currentTimeMillis())
-                throw new RuntimeException("One time password has expired");
+                throw new RuntimeException("Platnost OTP vypršela");
             else if (!oneTimePassword.getValue().equals(value))
-                throw new RuntimeException("Wrong one time password value");
+                throw new RuntimeException("Špatné OTP");
             return true;
         } else {
-            throw new RuntimeException("One time password not found");
+            throw new RuntimeException("OTP nebylo nalezeno");
         }
     }
 }

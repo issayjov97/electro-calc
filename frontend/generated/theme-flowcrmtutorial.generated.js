@@ -80,8 +80,10 @@ import '@vaadin/vaadin-lumo-styles/badge.js';
 import vaadinAppLayoutCss from 'themes/flowcrmtutorial/components/vaadin-app-layout.css';
 import vaadinButtonCss from 'themes/flowcrmtutorial/components/vaadin-button.css';
 import vaadinDrawerToggleCss from 'themes/flowcrmtutorial/components/vaadin-drawer-toggle.css';
+import vaadinGridCss from 'themes/flowcrmtutorial/components/vaadin-grid.css';
 import vaadinLoginFormWrapperCss from 'themes/flowcrmtutorial/components/vaadin-login-form-wrapper.css';
 import vaadinTabCss from 'themes/flowcrmtutorial/components/vaadin-tab.css';
+import vaadinTabsCss from 'themes/flowcrmtutorial/components/vaadin-tabs.css';
 import vaadinTextAreaCss from 'themes/flowcrmtutorial/components/vaadin-text-area.css';
 import vaadinTextFieldCss from 'themes/flowcrmtutorial/components/vaadin-text-field.css';
 import vaadinUploadCss from 'themes/flowcrmtutorial/components/vaadin-upload.css';
@@ -147,6 +149,12 @@ export const applyTheme = (target) => {
       `
     );
     registerStyles(
+      'vaadin-grid',
+      css`
+        ${unsafeCSS(vaadinGridCss.toString())}
+      `
+    );
+    registerStyles(
       'vaadin-login-form-wrapper',
       css`
         ${unsafeCSS(vaadinLoginFormWrapperCss.toString())}
@@ -156,6 +164,12 @@ export const applyTheme = (target) => {
       'vaadin-tab',
       css`
         ${unsafeCSS(vaadinTabCss.toString())}
+      `
+    );
+    registerStyles(
+      'vaadin-tabs',
+      css`
+        ${unsafeCSS(vaadinTabsCss.toString())}
       `
     );
     registerStyles(

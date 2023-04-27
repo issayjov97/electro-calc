@@ -8,11 +8,13 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableCaching
-class EmbeddedCacheConfig {
+public class EmbeddedCacheConfig {
+
+    public static final String FIRMS_CACHE = "firms";
 
     @Bean
     CacheManager cacheManager() {
-        return new ConcurrentMapCacheManager("firms");
+        return new ConcurrentMapCacheManager(FIRMS_CACHE);
     }
 
 }

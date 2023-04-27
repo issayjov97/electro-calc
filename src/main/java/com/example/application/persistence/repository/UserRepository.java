@@ -8,13 +8,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-
     @EntityGraph(attributePaths = {"authorityEntities","oneTimePassword"})
-    Optional<UserEntity> findFullUserByUsername(String username);
-
+    UserEntity findFullUserByUsername(String username);
     @EntityGraph(attributePaths = {"firmEntity"})
     Optional<UserEntity> findBriefUserByUsername(String username);
-
     @Override
     @EntityGraph(attributePaths = {"authorityEntities","firmEntity"})
     List<UserEntity> findAll();

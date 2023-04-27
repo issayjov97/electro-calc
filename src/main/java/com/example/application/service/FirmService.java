@@ -4,16 +4,21 @@ import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.persistence.entity.FirmSettingsEntity;
 import com.example.application.persistence.entity.PatternEntity;
 import com.example.application.persistence.repository.FirmRepository;
+import com.example.application.ui.components.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import javax.persistence.ParameterMode;
+import javax.persistence.StoredProcedureQuery;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -47,15 +52,20 @@ public class FirmService implements FilterableCrudService<FirmEntity> {
     @Transactional(readOnly = true)
     public FirmEntity getFirmWithDefaultPatterns() {
         var firm = userService.getUserFirm(AuthService.getUsername());
-        return firmRepository.getById(firm.getId());
+        return firmRepository.findWithDefaultPatternsById(firm.getId());
     }
 
     @Transactional(readOnly = true)
-    public FirmEntity getFirmWithAllPatterns() {
+    public FirmEntity getFirmWithCustomPatterns() {
         var firm = userService.getUserFirm(AuthService.getUsername());
-        return firmRepository.findWithAllPatternsById(firm.getId());
+        return firmRepository.findWithCustomPatternsById(firm.getId());
     }
 
+    public void enableCopyDefaultPatternsFeature() {
+        var firms = firmRepository.findAll();
+        firms.forEach(it -> it.setCopyDefaultPatterns(true));
+        firmRepository.saveAllAndFlush(firms);
+    }
 
     @Transactional
     public void deleteFirmWithDefaultPattern(PatternEntity patternEntity) {
@@ -75,7 +85,7 @@ public class FirmService implements FilterableCrudService<FirmEntity> {
 
     @Override
     public long countAnyMatching(Specification<FirmEntity> specification) {
-        return 0;
+        return firmRepository.count(specification);
     }
 
     @Override
@@ -85,16 +95,24 @@ public class FirmService implements FilterableCrudService<FirmEntity> {
 
     @Override
     public Set<FirmEntity> filter(Specification<FirmEntity> specifications, int offset, int size) {
-        return null;
+        return new LinkedHashSet<>(firmRepository.findAll(specifications, PageRequest.of(offset / size, size)).getContent());
     }
 
     public void copyDefaultPatterns(Long id) {
-        try {
-            Query query = entityManager.createNativeQuery("CALL copy_patterns(:firmId)")
-                    .setParameter("firmId", id);
-            query.getSingleResult();
-        } catch (Exception ex) {
-            logger.warn("CALL copy_patterns firmId {}", id, ex);
-        }
+        var firm = load(id);
+        StoredProcedureQuery storedQuery = entityManager
+                .createStoredProcedureQuery("copy_patterns")
+                .registerStoredProcedureParameter(
+                        1,
+                        Long.class,
+                        ParameterMode.IN
+                )
+                .setParameter(1, firm.getId());
+
+        storedQuery.execute();
+        logger.info("Defaultni polozky byly uspesne pridany");
+        firm.setCopyDefaultPatterns(true);
+        getRepository().save(firm);
+        NotificationService.success("Položky úspěšně byly přidány");
     }
 }

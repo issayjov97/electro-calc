@@ -2,6 +2,7 @@ package com.example.application.ui.views.customer;
 
 import com.example.application.persistence.entity.CustomerEntity;
 import com.example.application.service.CustomerService;
+import com.example.application.service.UserService;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.ListDataProvider;
@@ -11,29 +12,36 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.stream.Collectors;
+
+import static com.example.application.Values.TESTER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
+@Transactional
 class CustomersViewTest {
 
-    private final UI              ui = new UI();
+    private final UI ui = new UI();
     @Autowired
-    private       CustomerService customerService;
-    private       CustomersView   customersView;
+    private CustomerService customerService;
+    @Autowired
+    private UserService userService;
+    private CustomersView customersView;
 
     @BeforeEach
     void init() {
         UI.setCurrent(ui);
-        this.customersView = new CustomersView(customerService, null);
+        this.customersView = new CustomersView(customerService, userService);
     }
 
     @Test
-    @WithMockUser(username = "tester123")
-    public void formShownWhenUserSelected() {
+    @WithMockUser(username = TESTER)
+    void formShownWhenCustomerSelected() {
         Grid<CustomerEntity> grid = customersView.getItems();
         CustomerEntity customerEntity = getFirstCustomer(grid);
 
@@ -41,13 +49,14 @@ class CustomersViewTest {
 
         assertFalse(customersView.getCustomerForm().getDialog().isOpened());
         grid.asSingleSelect().setValue(customerEntity);
+
         assertTrue(customersView.getCustomerForm().getDialog().isOpened());
         assertEquals(customerEntity.getName(), form.getNameField().getValue());
     }
 
     @Test
-    @WithMockUser(username = "tester123")
-    public void formShownWhenAddUserClicked() {
+    @WithMockUser(username = TESTER)
+    void formShownWhenAddCustomerClicked() {
         CustomerForm form = customersView.getCustomerForm();
 
         assertFalse(customersView.getCustomerForm().getDialog().isOpened());
@@ -61,20 +70,23 @@ class CustomersViewTest {
     }
 
     @Test
-    @WithMockUser(username = "tester123")
-    public void filteredGridShownWhenFilterClicked() {
+    @WithMockUser(username = TESTER)
+    void filteredGridShownWhenFilterClicked() {
         Grid<CustomerEntity> grid = customersView.getItems();
+        var customers = grid.getDataProvider().fetch(new Query<>()).collect(Collectors.toList());
 
+        assertEquals(customers.size(), (int) grid.getDataProvider().fetch(new Query<>()).count());
         customersView.getNameFilter().setValue("tester");
-
-        assertEquals(2, (int) grid.getDataProvider().fetch(new Query<>()).count());
         customersView.getFilterButton().click();
 
-        assertEquals(1, (int) grid.getDataProvider().fetch(new Query<>()).count());
+        assertEquals(
+                customers.stream().filter(customerEntity -> customerEntity.getName().contains("tester")).count(),
+                (int) grid.getDataProvider().fetch(new Query<>()).count()
+        );
     }
 
     private CustomerEntity getFirstCustomer(Grid<CustomerEntity> grid) {
-        return ((ListDataProvider<CustomerEntity>) grid.getDataProvider()).getItems().iterator().next();
+        return grid.getDataProvider().fetch(new Query<>()).findFirst().orElse(null);
     }
 
 }

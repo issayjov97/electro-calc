@@ -66,8 +66,6 @@ public class SettingsView extends VerticalLayout implements RouterLayout {
             setContent(tabs.getSelectedTab());
         });
         add(tabs);
-        tabs.setSelectedTab(profile);
-        setContent(tabs.getSelectedTab());
         setSizeFull();
         addClassName("edit-view");
     }

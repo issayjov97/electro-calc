@@ -7,6 +7,8 @@ import com.example.application.ui.events.CloseEvent;
 import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.settings.SettingsView;
 import com.example.application.ui.views.settings.admin.authority.events.SaveEvent;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -78,6 +80,7 @@ public class AuthoritiesView extends AbstractServicesView<AuthorityEntity, Autho
     @Override
     protected HorizontalLayout getToolBar() {
         addButton.setIcon(VaadinIcon.PLUS.create());
+        addButton.addClickShortcut(Key.KEY_A, KeyModifier.ALT);
         addButton.addClickListener(e -> {
             getItems().asSingleSelect().clear();
             authorityForm.setEntity(new AuthorityEntity());

@@ -1,0 +1,7 @@
+[part~="cell"] ::slotted(vaadin-grid-cell-content){
+    max-width: 600px;
+}
+
+:host{
+    border: var(--_lumo-grid-border-width) solid var(--_lumo-grid-border-color);
+}

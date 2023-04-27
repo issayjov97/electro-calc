@@ -3,8 +3,6 @@ package com.example.application.ui.views.patern;
 import com.example.application.persistence.entity.PatternEntity;
 import com.example.application.persistence.predicate.PatternSpecification;
 import com.example.application.service.AuthService;
-import com.example.application.service.FinancialService;
-import com.example.application.service.ImportService;
 import com.example.application.service.PatternService;
 import com.example.application.service.UserService;
 import com.example.application.ui.components.NotificationService;
@@ -13,13 +11,13 @@ import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.MainView;
 import com.example.application.ui.views.patern.events.DeleteEvent;
 import com.example.application.ui.views.patern.events.SaveEvent;
-import com.example.application.utils.UIUtils;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.KeyDownEvent;
 import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -32,7 +30,6 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import org.springframework.core.convert.ConversionService;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -43,7 +40,6 @@ import java.util.Set;
 @RouteAlias(value = "", layout = MainView.class)
 public class PatternsView extends AbstractServicesView<PatternEntity, PatternEntity> {
     private final PatternService patternService;
-    private final FinancialService financialService;
     private final UserService userService;
     private final Button addButton = new Button("Přidat položku");
     private final Button filterButton = new Button("Najít");
@@ -54,13 +50,11 @@ public class PatternsView extends AbstractServicesView<PatternEntity, PatternEnt
 
     public PatternsView(
             PatternService patternService,
-            FinancialService financialService,
             UserService userService,
             ConversionService conversionService
     ) {
         super(new Grid<>(), patternService);
         this.patternService = patternService;
-        this.financialService = financialService;
         this.userService = userService;
         this.conversionService = conversionService;
         configureEvents();
@@ -74,35 +68,29 @@ public class PatternsView extends AbstractServicesView<PatternEntity, PatternEnt
 
     public void configureGrid() {
         getItems().addClassName("items-grid");
-        getItems().addColumn(PatternEntity::getId).setHeader("Kód").setFlexGrow(0).setWidth("100px");
-        getItems().addColumn(PatternEntity::getName).setHeader("Název").setComparator(Comparator.comparing(PatternEntity::getName));
-        getItems().addColumn(e -> conversionService.convert(e.getPriceWithoutVAT(), String.class))
-                .setHeader("Cena bez DPH").
-                setFlexGrow(0)
-                .setWidth("150px");
-        getItems().addColumn(e -> conversionService.convert(e.getDuration(), String.class)).setHeader("Doba montáže")
-                .setFlexGrow(0)
-                .setWidth("200px");
-        getItems().addColumn(PatternEntity::getDescription).setHeader("Popis").setFlexGrow(0).setWidth("250px");
+        getItems().addColumn(PatternEntity::getId).setHeader("Kód").setFlexGrow(0).setWidth("150px");
+        getItems().addColumn(PatternEntity::getName).setHeader("Název");
+        getItems().addColumn(e -> conversionService.convert(e.getPriceWithoutVAT(), String.class)).setHeader("Cena bez DPH").setTextAlign(ColumnTextAlign.CENTER);
+        getItems().addColumn(e -> conversionService.convert(e.getDuration(), String.class)).setHeader("Doba montáže");
+        getItems().addColumn(PatternEntity::getDescription).setHeader("Popis");
         getItems().getColumns().forEach(itemColumn -> itemColumn.setAutoWidth(false));
         getItems().asSingleSelect().addValueChangeListener(event -> {
             if (event.getValue() != null) {
                 patternForm.setEntity(event.getValue());
-                patternForm.open("Editace");
+                patternForm.open("Editace položky");
             }
         });
-//        getItems().setItems(patternService.filter(getSpecification()));
-        DataProvider<PatternEntity, Void> dataProvider =
-                DataProvider.fromCallbacks(
-                        query -> {
-                            int offset = query.getOffset();
-                            int limit = query.getLimit();
-                            query.getSortOrders();
-                            Set<PatternEntity> items = patternService.filter(getSpecification(), offset, limit);
-                            return items.stream();
-                        },
-                        query -> Math.toIntExact(patternService.countAnyMatching(getSpecification())));
-        getItems().setDataProvider(dataProvider);
+        getItems().setItems(patternService.filter(getSpecification()));
+//        DataProvider<PatternEntity, Void> dataProvider =
+//                DataProvider.fromCallbacks(
+//                        query -> {
+//                            int offset = query.getOffset();
+//                            int limit = query.getLimit();
+//                            List<PatternEntity> items = patternService.filterT(getSpecification(), offset, limit);
+//                            return items.stream();
+//                        },
+//                        query -> Math.toIntExact(patternService.countAnyMatching(getSpecification())));
+//        getItems().setDataProvider(dataProvider);
     }
 
     @Override
@@ -115,10 +103,10 @@ public class PatternsView extends AbstractServicesView<PatternEntity, PatternEnt
         nameFilter.setValueChangeMode(ValueChangeMode.LAZY);
 
         nameFilter.addKeyDownListener(Key.ENTER, (ComponentEventListener<KeyDownEvent>) keyDownEvent -> updateList());
-        nameFilter.addFocusShortcut(Key.KEY_F, KeyModifier.CONTROL);
-
+        nameFilter.addFocusShortcut(Key.KEY_F, KeyModifier.ALT);
 
         addButton.setIcon(VaadinIcon.PLUS.create());
+        addButton.addClickShortcut(Key.KEY_A, KeyModifier.ALT);
         addButton.addClickListener(e -> {
             getItems().asSingleSelect().clear();
             patternForm.setEntity(new PatternEntity());
@@ -144,7 +132,7 @@ public class PatternsView extends AbstractServicesView<PatternEntity, PatternEnt
 
     @Override
     protected void updateList() {
-        getItems().setItems(patternService.filter(getSpecification()));
+        getItems().setItems(patternService. filter(getSpecification()));
     }
 
     @Override
@@ -152,26 +140,6 @@ public class PatternsView extends AbstractServicesView<PatternEntity, PatternEnt
         patternForm.setEntity(null);
         patternForm.close();
     }
-
-//    private MenuBar getOptionsMenuBar() {
-//        MenuBar menuBar = new MenuBar();
-//        menuBar.getElement().setAttribute("theme", "menu-button");
-//        MenuItem options = menuBar.addItem("Ostatní");
-//        SubMenu subItems = options.getSubMenu();
-//
-//        MemoryBuffer memoryBuffer = new MemoryBuffer();
-//
-//        Upload upload = new Upload(memoryBuffer);
-//        upload.setDropAllowed(false);
-//        upload.setAcceptedFileTypes("text/csv", ".csv");
-//        upload.addFinishedListener(e -> {
-//            InputStream inputStream = memoryBuffer.getInputStream();
-//            importService.importPatterns(inputStream);
-//        });
-//        MenuItem importItem = subItems.addItem(upload);
-//        importItem.setCheckable(true);
-//        return menuBar;
-//    }
 
     private void save(SaveEvent event) {
         patternService.save(event.getItem());
@@ -193,5 +161,17 @@ public class PatternsView extends AbstractServicesView<PatternEntity, PatternEnt
 
     public PatternForm getPatternForm() {
         return patternForm;
+    }
+
+    public Button getAddButton() {
+        return addButton;
+    }
+
+    public Button getFilterButton() {
+        return filterButton;
+    }
+
+    public TextField getNameFilter() {
+        return nameFilter;
     }
 }

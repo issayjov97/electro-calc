@@ -1,19 +1,13 @@
 spring:
   datasource:
-#    url: jdbc:postgresql://ec2-34-253-119-24.eu-west-1.compute.amazonaws.com:5432/d4nu3a4cupid3g
-#    username: ojqfypvnusoirn
-#    password: e0dc89f2dbf421a6b47735060ea657617a4d302e880e087ae7f22a8dc5181849
-
-    url: jdbc:mysql://biosuntec-calc.mysql.database.azure.com:3306/electric_cal
-    username: user_elec
-    password: bios
+#    url: jdbc:mysql://localhost:3308/electric_cal
+#    username: user_elec
+#    password: bios
+    hikari:
+      schema: electric_cal
   jpa:
     properties:
       hibernate.format_sql: true
-      hibernate:
-        order_by:
-          default_null_ordering: last
-        dialect: com.example.application.config.MySQLCustomDialect
 
 logging:
   level:
@@ -29,3 +23,7 @@ logging:
             CommonsRequestLoggingFilter: DEBUG
           client:
             RestTemplate: DEBUG
+
+vaadin:
+  productionMode: false
+  compatibilityMode: false

@@ -8,10 +8,10 @@ import java.util.Objects;
 @Embeddable
 public class OfferPatternKey implements Serializable {
 
-    @Column(name = "offer_entity_id")
+    @Column(name = "offer_id")
     Long offerId;
 
-    @Column(name = "pattern_entity_id")
+    @Column(name = "pattern_id")
     Long patternId;
 
     public OfferPatternKey(Long offerId, Long patternId) {

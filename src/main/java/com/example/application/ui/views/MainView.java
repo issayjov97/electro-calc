@@ -19,7 +19,6 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -43,11 +42,9 @@ import java.util.List;
 @Theme(themeFolder = "flowcrmtutorial", value = Lumo.class)
 @CssImport(value = "./views/button.css", themeFor = "vaadin-button")
 public class MainView extends AppLayout {
-    private static Logger loger = LoggerFactory.getLogger(MainView.class);
+    private static final Logger logger = LoggerFactory.getLogger(MainView.class);
     private final ImportService importService;
-    private final MenuBar menuBar = new MenuBar();
     private Button logoutButton;
-    private Button importButton;
 
     public MainView(ImportService importService) {
         this.importService = importService;
@@ -80,7 +77,6 @@ public class MainView extends AppLayout {
         this.logoutButton.addClickListener(e -> logout());
         drawer.add(logoutButton);
         if (AuthService.isAdmin()) {
-            this.importButton = createMenuButton("Import položek", VaadinIcon.UPLOAD_ALT.create());
             var uploadMenuBar = createUploadButton();
             drawer.add(uploadMenuBar);
         }
@@ -128,7 +124,7 @@ public class MainView extends AppLayout {
             try {
                 importService.importPatterns(inputStream);
             } catch (RuntimeException exception) {
-                loger.error("Import patterns",exception);
+                logger.error("Import patterns", exception);
                 NotificationService.error(exception.getMessage());
             }
         });

@@ -1,17 +1,7 @@
 package com.example.application.persistence.entity;
 
-import com.example.application.service.FinancialService;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.PostLoad;
-import javax.persistence.Table;
-import java.util.HashSet;
+import javax.persistence.*;
 import java.util.Objects;
 import java.util.Set;
 
@@ -26,6 +16,7 @@ public class PatternEntity extends VATEntity {
     private String measureUnit;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "firm_id")
     private FirmEntity firmEntity;
 
     @ManyToMany(mappedBy = "defaultPatterns")
@@ -88,7 +79,7 @@ public class PatternEntity extends VATEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PatternEntity pattern = (PatternEntity) o;
-        return  Objects.equals(getId(), pattern.getId()) &&
+        return Objects.equals(getId(), pattern.getId()) &&
                 Objects.equals(name, pattern.name) &&
                 Objects.equals(description, pattern.description) &&
                 Objects.equals(duration, pattern.duration) &&
@@ -96,9 +87,13 @@ public class PatternEntity extends VATEntity {
 
     }
 
+    public boolean containsCabelCrossSection() {
+        return name.contains("kabel");
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(name,description, duration, getPriceWithoutVAT());
+        return Objects.hash(name, description, duration, getPriceWithoutVAT());
     }
 
     public Set<OfferPattern> getOfferPatterns() {

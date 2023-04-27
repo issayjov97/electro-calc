@@ -1,12 +1,11 @@
 package com.example.application.service;
 
-import com.example.application.persistence.entity.AbstractEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
-public interface CrudService<T extends AbstractEntity> {
+public interface CrudService<T> {
 
     JpaRepository<T, Long> getRepository();
 
@@ -30,7 +29,7 @@ public interface CrudService<T extends AbstractEntity> {
     }
 
     default T load(long id) {
-        return getRepository().findById(id).orElseThrow(() -> new EntityNotFoundException("Firma " + id + " neexistuje"));
+        return getRepository().findById(id).orElseThrow(() -> new EntityNotFoundException("Entita " + id + " neexistuje"));
     }
 
     default List<T> loadAll() {

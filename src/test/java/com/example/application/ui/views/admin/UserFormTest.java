@@ -1,31 +1,41 @@
 package com.example.application.ui.views.admin;
 
 import com.example.application.persistence.entity.AuthorityEntity;
+import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.persistence.entity.UserEntity;
 import com.example.application.ui.views.settings.admin.user.UserForm;
 import com.example.application.ui.views.settings.admin.user.events.SaveEvent;
 import com.example.application.ui.views.settings.admin.user.events.DeleteEvent;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UserFormTest {
-    final String firstname = "tester123";
-    final String lastname = "tester123";
-    final String email = "tester123@tester.cz";
-    final String password = "tester1997";
-    final String username = "tester123";
-    final LocalDateTime createdAt = LocalDateTime.now();
+    private final String firstname = "tester123";
+    private final String lastname = "tester123";
+    private final String email = "tester123@tester.cz";
+    private final String password = "tester1997";
+    private final String username = "tester123";
+    private final String firmName = "FIRM";
+    private final LocalDateTime createdAt = LocalDateTime.now();
+    private List<FirmEntity> firms = new ArrayList<>();
+
+    @BeforeEach
+    void setUp() {
+        final var firmEntity  = new FirmEntity();
+        firmEntity.setName(firmName);
+        firms.add(firmEntity);
+    }
 
     @Test
-    public void formFieldsPopulated() {
-        UserForm userForm = new UserForm(null);
+    void formFieldsPopulated() {
+        UserForm userForm = new UserForm(firms);
         UserEntity user = getUser();
 
         userForm.setEntity(user);
@@ -36,13 +46,16 @@ class UserFormTest {
         assertEquals(username, userForm.getUsername().getValue());
         assertEquals(password, userForm.getPassword().getValue());
         assertEquals(true, userForm.getEnabled().getValue());
+        assertEquals(firmName, userForm.getFirmsSelect().getValue().getName());
     }
 
     @Test
-    public void saveEventHasCorrectValues() {
-        UserForm userForm = new UserForm(null);
+    void saveEventHasCorrectValues() {
+        UserForm userForm = new UserForm(firms);
         UserEntity user = new UserEntity();
-        List<AuthorityEntity> authorities = List.of(new AuthorityEntity());
+        var authority = new AuthorityEntity();
+        authority.setName("USER");
+        List<AuthorityEntity> authorities = List.of(authority);
         userForm.setEntity(user);
         userForm.getFirstName().setValue(firstname);
         userForm.getLastName().setValue(lastname);
@@ -50,14 +63,14 @@ class UserFormTest {
         userForm.getPassword().setValue(password);
         userForm.getUsername().setValue(username);
         userForm.getEnabled().setEnabled(true);
-        userForm.getAllAuthorities().addAll(authorities);
+        userForm.getAuthoritiesSelect().setValue(Set.of(authority));
+        userForm.getFirmsSelect().setValue(firms.stream().findFirst().orElseGet(null));
 
         AtomicReference<UserEntity> savedContactRef = new AtomicReference<>(null);
         userForm.addListener(SaveEvent.class, e -> {
             savedContactRef.set(e.getItem());
         });
         userForm.getSaveButton().click();
-        userForm.getAuthorities().select(authorities);
 
         UserEntity savedUserEntity = savedContactRef.get();
 
@@ -68,11 +81,12 @@ class UserFormTest {
         assertEquals(username, savedUserEntity.getUsername());
         assertEquals(true, savedUserEntity.getEnabled());
         assertEquals(authorities.size(), savedUserEntity.getAuthorityEntities().size());
+        assertEquals(firmName, savedUserEntity.getFirmEntity().getName());
     }
 
     @Test
-    public void deleteEventHasCorrectValues() {
-        UserForm userForm = new UserForm(null);
+    void deleteEventHasCorrectValues() {
+        UserForm userForm = new UserForm(firms);
         UserEntity user = getUser();
 
         AtomicReference<UserEntity> deleteUserRef = new AtomicReference<>(null);
@@ -91,6 +105,8 @@ class UserFormTest {
         assertEquals(true, deletedUserEntity.getEnabled());
         assertEquals(username, deletedUserEntity.getUsername());
         assertEquals(createdAt, deletedUserEntity.getCreatedAt());
+        assertEquals(0, deletedUserEntity.getAuthorityEntities().size());
+        assertEquals(firmName, deletedUserEntity.getFirmEntity().getName());
     }
 
     private UserEntity getUser(){
@@ -103,6 +119,7 @@ class UserFormTest {
         user.setEmail(email);
         user.setEnabled(true);
         user.setAuthorityEntities(Collections.emptySet());
+        user.setFirmEntity(firms.stream().findFirst().orElseGet(null));
         return  user;
     }
 }

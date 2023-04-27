@@ -1,5 +1,6 @@
 package com.example.application.security;
 
+import com.example.application.error.AccessDeniedException;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.server.ServiceInitEvent;
@@ -7,8 +8,7 @@ import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.example.application.ui.views.login.LoginView;
 import org.springframework.stereotype.Component;
 
-
-@Component 
+@Component
 public class ConfigureUIServiceInitListener implements VaadinServiceInitListener {
 
 	@Override

@@ -1,13 +1,6 @@
 package com.example.application.persistence.entity;
 
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -20,14 +13,19 @@ public class OfferPattern {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("offerId")
+    @JoinColumn(name = "offer_id")
     private OfferEntity offerEntity;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @MapsId("patternId")
+    @JoinColumn(name = "pattern_id")
     private PatternEntity patternEntity;
 
     @Column(name = "count")
-    int count = 1;
+    private int count = 1;
+
+    @Column(name = "include_cabel_cross_section")
+    private boolean withCabelCrossSection;
 
     @Transient
     private BigDecimal materialsCost = BigDecimal.ZERO;
@@ -97,5 +95,13 @@ public class OfferPattern {
 
     public void setWorkCost(BigDecimal workCost) {
         this.workCost = workCost;
+    }
+
+    public boolean withCabelCrossSection() {
+        return withCabelCrossSection;
+    }
+
+    public void setWithCabelCrossSection(boolean withCabelCrossSection) {
+        this.withCabelCrossSection = withCabelCrossSection;
     }
 }

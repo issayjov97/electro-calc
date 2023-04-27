@@ -1,11 +1,6 @@
 package com.example.application.persistence.entity;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Set;
 
 @Entity
@@ -17,14 +12,15 @@ public class CustomerEntity extends AbstractEntity {
     private String phone;
     @Column(columnDefinition = "TEXT")
     private String note;
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "firm_id")
     private FirmEntity firmEntity;
 
     @OneToMany(
             mappedBy = "customerEntity",
             orphanRemoval = true,
-            cascade = CascadeType.ALL
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY
     )
     private Set<OfferEntity> offers;
 

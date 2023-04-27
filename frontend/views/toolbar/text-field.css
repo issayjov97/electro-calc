@@ -1,16 +1,19 @@
-:host([theme="test"]) [part="input-field"] {
+:host([theme="search"])  [part="input-field"] {
+    background-color: white;
+}
+
+:host([theme="test"]) [part="input-field"]{
     border-radius: 4px;
     background-color: white;
 }
 
 :host([theme="search"]) [part="input-field"] {
     border-radius: 4px;
-    background-color: grey;
 }
 
 :host([theme="without-vat"]) [part="input-field"] {
     color: white;
-    background-color: grey;
+    background-color: green;
 }
 
 :host([theme="with-vat"]) [part="input-field"] {
@@ -20,11 +23,6 @@
 
 :host([theme="with-vat"]) [part="input-field"] ::slotted(:not([part]):not(iron-icon):not(input):not(textarea)),
 :host([theme="without-vat"]) [part="input-field"] ::slotted(:not([part]):not(iron-icon):not(input):not(textarea)) {
-    color:white;
+    color: white;
     font-weight: 400;
 }
-{
-    color:white;
-    font-weight: 400;
-}
-

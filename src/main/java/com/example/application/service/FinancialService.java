@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collections;
+import java.util.Optional;
 
 @Service
 public class FinancialService {
@@ -25,7 +27,9 @@ public class FinancialService {
     }
 
     public BigDecimal summaryMaterialCost(OfferEntity source) {
-        return source.getOfferPatterns().stream()
+        return Optional.ofNullable(source.getOfferPatterns())
+                .orElse(Collections.emptySet())
+                .stream()
                 .map(this::materialCost)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
@@ -33,7 +37,7 @@ public class FinancialService {
     public BigDecimal materialCost(OfferPattern offerPattern) {
         var firmSettings = firmSettingsService.getFirmSettings();
         var cost = offerPattern.getPatternEntity().getPriceWithoutVAT().multiply(BigDecimal.valueOf(offerPattern.getCount()));
-        if (offerPattern.getPatternEntity().getName().contains("kabel")) {
+        if (offerPattern.withCabelCrossSection()) {
             cost = cost.add(cost.multiply(BigDecimal.valueOf(firmSettings.getIncision())).divide(ONE_HUNDRED, 2, RoundingMode.HALF_UP));
         }
         return cost;
@@ -59,28 +63,31 @@ public class FinancialService {
         return source.getTransportationCost().add(source.getMaterialsCost()).add(source.getWorkCost());
     }
 
-    public BigDecimal offerTotalPriceWithDPH(OfferEntity source) {
-        return source.getPriceWithVAT().subtract(offerSaleValueWithDPH(source));
+    public BigDecimal offerTotalPriceWithVAT(OfferEntity source) {
+        return source.getPriceWithVAT().subtract(offerPriceWithSaleWithVAT(source));
     }
 
-    public BigDecimal offerTotalPriceWithoutDPH(OfferEntity source) {
-        return source.getPriceWithoutVAT().subtract(offerSaleValueWithoutDPH(source));
+    public BigDecimal offerTotalPriceWithoutVAT(OfferEntity source) {
+        return source.getPriceWithoutVAT().subtract(offerPriceWithSaleWithoutVAT(source));
     }
 
-    public BigDecimal offerSaleValueWithDPH(OfferEntity source) {
+    public BigDecimal offerPriceWithSaleWithVAT(OfferEntity source) {
         var firmSettings = firmSettingsService.getFirmSettings();
         var priceWithVAT = source.getPriceWithVAT();
         return priceWithVAT.multiply(BigDecimal.valueOf(firmSettings.getSale())).divide(ONE_HUNDRED, RoundingMode.HALF_UP);
     }
 
-    public BigDecimal offerSaleValueWithoutDPH(OfferEntity source) {
+    public BigDecimal offerPriceWithSaleWithoutVAT(OfferEntity source) {
         var firmSettings = firmSettingsService.getFirmSettings();
         var priceWithoutVAT = source.getPriceWithoutVAT();
         return priceWithoutVAT.multiply(BigDecimal.valueOf(firmSettings.getSale())).divide(ONE_HUNDRED, RoundingMode.HALF_UP);
     }
 
     public double summaryWorkDuration(OfferEntity source) {
-        return source.getOfferPatterns().stream().mapToDouble(this::workDuration).sum();
+        return Optional.ofNullable(source.getOfferPatterns())
+                .orElse(Collections.emptySet())
+                .stream()
+                .mapToDouble(this::workDuration).sum();
     }
 
     public double workDuration(OfferPattern offerPattern) {

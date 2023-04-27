@@ -32,8 +32,8 @@ public class PatternForm extends AbstractForm<PatternEntity> {
     protected void setBinder() {
         binder.forField(nameField).asRequired("Nazev je povinny")
                 .withValidator(
-                        name -> name.length() >= 6,
-                        "Název musí obsahovat alespoň 6 znaků"
+                        name -> name.length() >= 3,
+                        "Název musí obsahovat alespoň 3 znaků"
                 )
                 .bind(PatternEntity::getName, PatternEntity::setName);
 
@@ -58,19 +58,17 @@ public class PatternForm extends AbstractForm<PatternEntity> {
         formLayout.setColspan(descriptionField, 2);
         formLayout.setMaxWidth("400px");
         formLayout.add(nameField, descriptionField, durationField, priceWithoutVatField);
-
         return formLayout;
     }
 
     @Override
     protected HorizontalLayout createButtonsLayout() {
-        final HorizontalLayout buttonsMenu = new HorizontalLayout();
-        buttonsMenu.setMargin(true);
+        HorizontalLayout buttonsMenu = new HorizontalLayout();
         saveButton.addClickListener(event -> validateAndSave());
         deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
         cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this, false)));
         buttonsMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-        buttonsMenu.add(saveButton, cancelButton, deleteButton);
+        buttonsMenu.add(saveButton, deleteButton, cancelButton);
         return buttonsMenu;
     }
 

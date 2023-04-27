@@ -1,0 +1,3 @@
+:host {
+    border: var(--_lumo-grid-border-width) solid var(--_lumo-grid-border-color);
+}

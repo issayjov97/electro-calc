@@ -1,9 +1,6 @@
 package com.example.application.persistence.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 
 @Entity
@@ -18,8 +15,9 @@ public class FirmSettingsEntity extends AbstractEntity {
     private int incision = 0;
 
     @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
+    @JoinColumn(name = "id")
     private FirmEntity firmEntity;
-
 
     public FirmEntity getFirmEntity() {
         return firmEntity;

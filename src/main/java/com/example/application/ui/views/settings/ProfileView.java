@@ -4,6 +4,8 @@ import com.example.application.persistence.entity.UserEntity;
 import com.example.application.service.AuthService;
 import com.example.application.service.UserService;
 import com.example.application.ui.components.NotificationService;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -25,14 +27,13 @@ public class ProfileView extends Div {
 
     public ProfileView(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
-        changePasswordForm = new ChangePasswordForm(userService, passwordEncoder);
+        changePasswordForm = new ChangePasswordForm(userService, passwordEncoder, false);
         setSizeFull();
         addClassName("edit-form");
         add(getProfileContent(), changePasswordForm);
     }
 
     private VerticalLayout getProfileContent() {
-        final VerticalLayout settingsContent = new VerticalLayout();
         final Binder<UserEntity> binder = new BeanValidationBinder<>(UserEntity.class);
         final UserEntity userEntity = userService.getByUsername(AuthService.getUsername());
         TextField firstName = new TextField("Jméno");
@@ -53,6 +54,7 @@ public class ProfileView extends Div {
         email.setValue(userEntity.getEmail());
 
         Button saveButton = new Button("Uložit");
+        saveButton.addClickShortcut(Key.KEY_S, KeyModifier.ALT);
         Button changePassword = new Button("Změnit heslo");
 
         binder.forField(firstName)
@@ -61,18 +63,16 @@ public class ProfileView extends Div {
                         "Min 2 znaky"
                 )
                 .bind(UserEntity::getFirstName, UserEntity::setFirstName);
-
         binder.forField(lastName)
                 .withValidator(
                         v -> v.length() >= 2,
                         "Min 2 znaky"
                 )
                 .bind(UserEntity::getLastName, UserEntity::setLastName);
-
         binder.forField(username)
                 .withValidator(
-                        v -> v.length() >= 6,
-                        "Min 6 znaků"
+                        v -> v.length() >= 4,
+                        "Min 4 znaků"
                 )
                 .bind(UserEntity::getUsername, UserEntity::setUsername);
 
@@ -95,16 +95,11 @@ public class ProfileView extends Div {
             }
         });
         changePassword.addClickListener(e -> {
+            changePasswordForm.setEntity(userEntity);
             changePasswordForm.open("Změna hesla");
         });
         changePassword.setWidth("20%");
         saveButton.setWidth("20%");
-        settingsContent.add(firstName);
-        settingsContent.add(lastName);
-        settingsContent.add(username);
-        settingsContent.add(email);
-        settingsContent.add(changePassword);
-        settingsContent.add(saveButton);
-        return settingsContent;
+        return new VerticalLayout(firstName, lastName, username, email, changePassword, saveButton);
     }
 }

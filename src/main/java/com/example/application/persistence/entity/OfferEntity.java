@@ -1,19 +1,10 @@
 package com.example.application.persistence.entity;
 
-import com.example.application.model.enums.OrderStatus;
+import com.example.application.model.enums.OfferStatus;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
@@ -29,7 +20,7 @@ public class OfferEntity extends VATEntity {
     @Column(columnDefinition = "TEXT")
     private String note;
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private OfferStatus status = OfferStatus.NONE;
     private LocalDate createdDate = LocalDate.now();
     @Transient
     private BigDecimal transportationCost = BigDecimal.ZERO;
@@ -39,9 +30,11 @@ public class OfferEntity extends VATEntity {
     private Double workDuration = 0.0;
     @Transient
     private BigDecimal workCost = BigDecimal.ZERO;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
     private CustomerEntity customerEntity;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "firm_id")
     private FirmEntity firmEntity;
     @OneToMany(
             mappedBy = "offerEntity",
@@ -50,10 +43,11 @@ public class OfferEntity extends VATEntity {
     )
     private Set<OfferPattern> offerPatterns;
 
-    public void addPatterns(PatternEntity patternEntity, int count) {
+    public void addPatterns(PatternEntity patternEntity, int count, boolean value) {
         OfferPattern offerPattern = new OfferPattern();
         offerPattern.setId(new OfferPatternKey(this.getId(), patternEntity.getId()));
         offerPattern.setCount(count);
+        offerPattern.setWithCabelCrossSection(value);
         offerPattern.setOfferEntity(this);
         offerPattern.setPatternEntity(patternEntity);
         this.offerPatterns.add(offerPattern);
@@ -190,11 +184,11 @@ public class OfferEntity extends VATEntity {
         this.note = note;
     }
 
-    public OrderStatus getStatus() {
+    public OfferStatus getStatus() {
         return status;
     }
 
-    public void setStatus(OrderStatus status) {
+    public void setStatus(OfferStatus status) {
         this.status = status;
     }
 }

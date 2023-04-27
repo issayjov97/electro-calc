@@ -33,8 +33,8 @@ public class CustomerForm extends AbstractForm<CustomerEntity> {
     protected void setBinder() {
         binder.forField(nameField).asRequired("Název je povinný")
                 .withValidator(
-                        name -> name.length() >= 3,
-                        "Min 3 znáků "
+                        name -> name.length() >= 2,
+                        "Min 2 znáků "
                 )
                 .bind(CustomerEntity::getName, CustomerEntity::setName);
 
@@ -67,10 +67,13 @@ public class CustomerForm extends AbstractForm<CustomerEntity> {
 
     @Override
     protected HorizontalLayout createButtonsLayout() {
+        HorizontalLayout buttonsMenu = new HorizontalLayout();
         saveButton.addClickListener(event -> validateAndSave());
         deleteButton.addClickListener(event -> fireEvent(new DeleteEvent(this, getEntity())));
         cancelButton.addClickListener(event -> fireEvent(new CloseEvent(this, false)));
-        return new HorizontalLayout(saveButton, deleteButton, cancelButton);
+        buttonsMenu.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        buttonsMenu.add(saveButton, deleteButton, cancelButton);
+        return buttonsMenu;
     }
 
     @Override

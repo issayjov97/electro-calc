@@ -1,9 +1,8 @@
 package com.example.application.ui.views.offer;
 
-import com.example.application.model.enums.OrderStatus;
+import com.example.application.model.enums.OfferStatus;
 import com.example.application.persistence.entity.CustomerEntity;
 import com.example.application.persistence.entity.OfferEntity;
-import com.example.application.service.CustomerService;
 import com.example.application.ui.views.AbstractForm;
 import com.example.application.ui.views.offer.events.SaveOfferDetailsEvent;
 import com.vaadin.flow.component.Component;
@@ -20,20 +19,22 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 
+import java.util.Set;
+
 
 @CssImport(value = "./views/menu-bar.css", themeFor = "vaadin-menu-bar")
 public class OfferDetailsForm extends AbstractForm<OfferEntity> {
     private final TextField name = new TextField("Název");
     private final TextArea description = new TextArea("Popis");
-    private final NumberField distance = new NumberField("Vzdalenost");
+    private final NumberField distance = new NumberField("Vzdalenost (Km)");
     private final TextArea note = new TextArea("Poznamka");
-    private final ComboBox<OrderStatus> statuses = new ComboBox<>("Status nabídky", OrderStatus.values());
+    private final ComboBox<OfferStatus> statusesSelect = new ComboBox<>("Status nabídky", OfferStatus.values());
     private final ComboBox<CustomerEntity> customersSelect = new ComboBox<>("Zákazník");
-    private final CustomerService customerService;
+    private Set<CustomerEntity> customers;
 
-    public OfferDetailsForm(CustomerService customerService) {
+    public OfferDetailsForm(Set<CustomerEntity> customers) {
         super(new BeanValidationBinder<>(OfferEntity.class));
-        this.customerService = customerService;
+        this.customers = customers;
         setBinder();
         configureSelect();
         VerticalLayout verticalLayout = new VerticalLayout(createDialogLayout(), createButtonsLayout());
@@ -43,15 +44,17 @@ public class OfferDetailsForm extends AbstractForm<OfferEntity> {
 
     @Override
     protected void setBinder() {
-        binder.forField(name).withValidator(e -> e.length() > 2, "Název je povinný")
+        binder.forField(name).withValidator(e -> e.length() >= 2, "Název je povinný, min 2 znáky")
                 .bind(OfferEntity::getName, OfferEntity::setName);
-        binder.forField(description).bind(OfferEntity::getDescription, OfferEntity::setDescription);
-        binder.forField(distance).bind(OfferEntity::getDistance, OfferEntity::setDistance);
+        binder.forField(description)
+                .bind(OfferEntity::getDescription, OfferEntity::setDescription);
+        binder.forField(distance)
+                .bind(OfferEntity::getDistance, OfferEntity::setDistance);
         binder.forField(customersSelect)
                 .bind(OfferEntity::getCustomerEntity, OfferEntity::setCustomerEntity);
         binder.forField(note)
                 .bind(OfferEntity::getNote, OfferEntity::setNote);
-        binder.forField(statuses)
+        binder.forField(statusesSelect)
                 .bind(OfferEntity::getStatus, OfferEntity::setStatus);
     }
 
@@ -62,7 +65,7 @@ public class OfferDetailsForm extends AbstractForm<OfferEntity> {
                 new FormLayout.ResponsiveStep("0", 1),
                 new FormLayout.ResponsiveStep("200px", 2)
         );
-        formLayout.add(name, distance, customersSelect, statuses, description, note);
+        formLayout.add(name, distance, customersSelect, statusesSelect, description, note);
         return formLayout;
     }
 
@@ -80,11 +83,11 @@ public class OfferDetailsForm extends AbstractForm<OfferEntity> {
     }
 
     private void configureSelect() {
-        statuses.setClearButtonVisible(true);
+        statusesSelect.setClearButtonVisible(true);
         customersSelect.addClassName("label");
         customersSelect.setClearButtonVisible(true);
         customersSelect.setItemLabelGenerator(CustomerEntity::getName);
-        customersSelect.setItems(customerService.getFirmCustomers());
+        customersSelect.setItems(customers);
     }
 
     @Override
@@ -96,4 +99,37 @@ public class OfferDetailsForm extends AbstractForm<OfferEntity> {
             e.printStackTrace();
         }
     }
+
+    public TextField getName() {
+        return name;
+    }
+
+    public TextArea getDescription() {
+        return description;
+    }
+
+    public NumberField getDistance() {
+        return distance;
+    }
+
+    public TextArea getNote() {
+        return note;
+    }
+
+    public ComboBox<OfferStatus> getStatusesSelect() {
+        return statusesSelect;
+    }
+
+    public ComboBox<CustomerEntity> getCustomersSelect() {
+        return customersSelect;
+    }
+
+    public Set<CustomerEntity> getCustomers() {
+        return customers;
+    }
+
+    public void setCustomers(Set<CustomerEntity> customers) {
+        this.customers = customers;
+    }
+
 }

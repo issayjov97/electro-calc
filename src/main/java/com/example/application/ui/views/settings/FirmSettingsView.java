@@ -3,6 +3,8 @@ package com.example.application.ui.views.settings;
 import com.example.application.persistence.entity.FirmSettingsEntity;
 import com.example.application.service.FirmSettingsService;
 import com.example.application.ui.components.NotificationService;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -61,6 +63,7 @@ public class FirmSettingsView extends Div {
         costPerHour.setWidth("20%");
 
         Button saveButton = new Button("Uložit");
+        saveButton.addClickShortcut(Key.KEY_S, KeyModifier.ALT);
 
         binder.forField(costPerKm)
                 .bind(FirmSettingsEntity::getCostPerKm, FirmSettingsEntity::setCostPerKm);

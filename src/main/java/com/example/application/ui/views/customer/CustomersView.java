@@ -12,10 +12,7 @@ import com.example.application.ui.views.MainView;
 import com.example.application.ui.views.customer.events.DeleteEvent;
 import com.example.application.ui.views.customer.events.SaveEvent;
 import com.example.application.ui.views.offer.OffersView;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.KeyDownEvent;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
@@ -67,10 +64,10 @@ public class CustomersView extends AbstractServicesView<CustomerEntity, Customer
     @Override
     protected void configureGrid() {
         getItems().addClassName("items-grid");
-        getItems().addColumn(CustomerEntity::getName).setHeader("Zkratka");
+        getItems().addColumn(CustomerEntity::getName).setHeader("Jméno");
         getItems().addColumn(CustomerEntity::getEmail).setHeader("Email");
         getItems().addColumn(CustomerEntity::getPhone).setHeader("Telefonní číslo");
-        getItems().addColumn(CustomerEntity::getNote).setHeader("Poznámka");
+        getItems().addColumn(CustomerEntity::getNote).setHeader("Poznámka").setFlexGrow(0).setWidth("200px");
 
         getItems().getColumns().forEach(itemColumn -> itemColumn.setAutoWidth(true));
         getItems().asSingleSelect().addValueChangeListener(e -> {
@@ -106,7 +103,7 @@ public class CustomersView extends AbstractServicesView<CustomerEntity, Customer
         nameFilter.getElement().setAttribute("theme", "test");
         emailFilter.getElement().setAttribute("theme", "test");
 
-        nameFilter.setPlaceholder("Zkratka");
+        nameFilter.setPlaceholder("Jméno");
         nameFilter.setClearButtonVisible(true);
         nameFilter.setValueChangeMode(ValueChangeMode.LAZY);
         nameFilter.addKeyDownListener(Key.ENTER, (ComponentEventListener<KeyDownEvent>) keyDownEvent -> updateList());
@@ -114,8 +111,11 @@ public class CustomersView extends AbstractServicesView<CustomerEntity, Customer
         emailFilter.setPlaceholder("Email");
         emailFilter.setClearButtonVisible(true);
         emailFilter.setValueChangeMode(ValueChangeMode.LAZY);
-        addButton.setIcon(VaadinIcon.PLUS.create());
+        nameFilter.addKeyDownListener(Key.ENTER, (ComponentEventListener<KeyDownEvent>) keyDownEvent -> updateList());
+        nameFilter.addFocusShortcut(Key.KEY_F, KeyModifier.ALT);
 
+        addButton.setIcon(VaadinIcon.PLUS.create());
+        addButton.addClickShortcut(Key.KEY_A, KeyModifier.ALT);
         addButton.addClickListener(e -> {
             getItems().asSingleSelect().clear();
             customerForm.setEntity(new CustomerEntity());

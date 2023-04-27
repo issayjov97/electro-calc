@@ -14,6 +14,9 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, Long>,
 
     Set<CustomerEntity> findCustomersByFirmEntityIdOrderByName(Long id);
 
+    @Query("SELECT c.name FROM CustomerEntity c where c.firmEntity.id = :id")
+    List<String> findCustomerNames(Long id);
+
     @Override
     List<CustomerEntity> findAll(Specification<CustomerEntity> specification);
 

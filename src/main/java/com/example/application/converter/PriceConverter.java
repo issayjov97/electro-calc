@@ -1,6 +1,6 @@
 package com.example.application.converter;
 
-import com.example.application.utils.FormattingUtils;
+import com.example.application.util.FormattingUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 

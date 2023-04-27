@@ -1,22 +1,18 @@
 spring:
-  messages:
-    encoding: UTF-8
-  thymeleaf:
-    enabled: true
-    encoding: UTF-8
   application:
-    name: crm
+    name: electric_cal
   datasource:
-    url:
-    username:
-    password:
+    url: jdbc:mysql://biosuntec-calc.mysql.database.azure.com:3306/electric_cal
+    username: user_elec
+    password: bios
     hikari:
-      maximum-pool-size: 3
+      schema: electric_cal
+      maximum-pool-size: 5
   jpa:
     open-in-view: true
-    hibernate:
-      ddl-auto: update
-
+  flyway:
+    locations: classpath:db/migration
+    enabled: false
   mail:
     host: smtp.gmail.com
     port: 587
@@ -28,16 +24,22 @@ spring:
           auth: true
           starttls:
             enable: true
-
-  liquibase:
-    change-log: classpath:/db/migration/changelog-master.yml
 logging:
   pattern:
     console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){blue} %clr(%-5p) %clr(${PID}){faint} %clr(---){faint} %clr([%8.15t]){cyan} %clr(%-40.40logger{0}){blue} %clr(:){red} %X{traceId}%clr(%m){faint}%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p ${PID} --- [%8.15t] %-40.40logger{0} : %X{traceId}%m%n"
 
-vaadin:
-  productionMode: false
-  compatibilityMode: false
 server:
   port: ${PORT:8080}
+
+feign:
+  httpclient:
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 10000
+        loggerLevel: full
+
+mfcr:
+  url: https://wwwinfo.mfcr.cz

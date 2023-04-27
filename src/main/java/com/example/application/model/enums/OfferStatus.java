@@ -4,18 +4,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public enum OrderStatus {
+public enum OfferStatus {
     NONE(""),
     IN_PROGRESS("Rozpracovaná"),
     CANCELED("Stornovaná"),
     SENT("Odeslaná"),
-    DONE("Uzavřená"),
-    EDITION("Korekce");
-
+    DONE("Uzavřená");
 
     private final String value;
 
-    OrderStatus(String value) {
+    OfferStatus(String value) {
         this.value = value;
     }
 
@@ -24,7 +22,7 @@ public enum OrderStatus {
     }
 
     public static List<String> getStatuses() {
-        return Arrays.stream(OrderStatus.values()).map(OrderStatus::getValue).collect(Collectors.toList());
+        return Arrays.stream(OfferStatus.values()).map(OfferStatus::getValue).collect(Collectors.toList());
     }
 
     @Override

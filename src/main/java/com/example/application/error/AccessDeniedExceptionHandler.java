@@ -1,9 +1,9 @@
-package com.example.application.security;
+package com.example.application.error;
 
+import com.example.application.error.AccessDeniedException;
+import com.example.application.ui.components.NotificationService;
 import com.example.application.ui.views.MainView;
 import com.vaadin.flow.component.Tag;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.ErrorParameter;
@@ -22,11 +22,9 @@ public class AccessDeniedExceptionHandler extends VerticalLayout implements HasE
 
     @Override
     public int setErrorParameter(BeforeEnterEvent beforeEnterEvent, ErrorParameter<AccessDeniedException> errorParameter) {
-        getElement().setText("Tried to navigate to a view without "
-                + "correct access rights");
-        var notification = Notification.show("403 - Access Forbidden");
-        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        notification.setPosition(Notification.Position.TOP_CENTER);
+        getElement().setText("Pokusili jste se přejít na stránku bez správných přístupových práv");
+        getElement().getStyle().set("text-align","center");
+        NotificationService.error("403 - Access Forbidden");
         return HttpServletResponse.SC_FORBIDDEN;
     }
 }

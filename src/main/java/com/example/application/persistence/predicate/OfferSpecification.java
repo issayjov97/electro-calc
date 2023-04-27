@@ -1,6 +1,7 @@
 package com.example.application.persistence.predicate;
 
-import com.example.application.model.enums.OrderStatus;
+import com.example.application.model.enums.OfferStatus;
+import com.example.application.persistence.entity.CustomerEntity;
 import com.example.application.persistence.entity.FirmEntity;
 import com.example.application.persistence.entity.OfferEntity;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,14 +13,16 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 
 public class OfferSpecification implements Specification<OfferEntity> {
-    private Long firmId;
-    private String name;
-    private OrderStatus status;
+    private final Long firmId;
+    private final String name;
+    private final OfferStatus status;
+    private String customerName;
 
-    public OfferSpecification(Long firmId, String name, OrderStatus status) {
+    public OfferSpecification(Long firmId, String name, OfferStatus status, String customerName) {
         this.firmId = firmId;
         this.name = name;
         this.status = status;
+        this.customerName = customerName;
     }
 
     @Override
@@ -28,7 +31,10 @@ public class OfferSpecification implements Specification<OfferEntity> {
         if (name != null && !name.isBlank()) {
             predicates.add(criteriaBuilder.like(root.get("name"), "%" + name + "%"));
         }
-        if (status != null && status != OrderStatus.NONE) {
+        if (customerName != null && !customerName.isBlank()) {
+            predicates.add(criteriaBuilder.equal(criteriaBuilder.treat(root.get("customerEntity"), CustomerEntity.class).get("name"), customerName));
+        }
+        if (status != null && status != OfferStatus.NONE) {
             predicates.add(criteriaBuilder.equal(root.get("status"), status));
         }
         predicates.add(criteriaBuilder.equal(criteriaBuilder.treat(root.get("firmEntity"), FirmEntity.class).get("id"), firmId));

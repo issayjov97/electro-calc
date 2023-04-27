@@ -9,7 +9,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "authorities")
-public class AuthorityEntity extends AbstractEntity{
+public class AuthorityEntity extends AbstractEntity {
 
     private String name;
 

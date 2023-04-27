@@ -11,10 +11,9 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 
 public class CustomerSpecification implements Specification<CustomerEntity> {
-    private Long firmId;
-    private String email;
-    private String name;
-
+    private final Long firmId;
+    private final String email;
+    private final String name;
 
     public CustomerSpecification(Long firmId, String email, String name) {
         this.firmId = firmId;
@@ -32,7 +31,7 @@ public class CustomerSpecification implements Specification<CustomerEntity> {
             predicates.add(criteriaBuilder.like(root.get("name"), "%" + name + "%"));
         }
         predicates.add(criteriaBuilder.equal(criteriaBuilder.treat(root.get("firmEntity"), FirmEntity.class).get("id"), firmId));
-        criteriaQuery.orderBy(criteriaBuilder.desc(root.get("name")));
+        criteriaQuery.orderBy(criteriaBuilder.asc(root.get("name")));
         return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
     }
 }

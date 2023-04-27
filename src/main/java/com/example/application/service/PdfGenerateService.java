@@ -14,12 +14,10 @@ import java.util.Map;
 
 
 @Service
-public class PdfGenerateServiceImpl {
-    private final Logger logger = LoggerFactory.getLogger(PdfGenerateServiceImpl.class);
-
+public class PdfGenerateService {
+    private final Logger logger = LoggerFactory.getLogger(PdfGenerateService.class);
     private final TemplateEngine templateEngine;
-
-    public PdfGenerateServiceImpl(TemplateEngine templateEngine) {
+    public PdfGenerateService(TemplateEngine templateEngine) {
         this.templateEngine = templateEngine;
     }
 

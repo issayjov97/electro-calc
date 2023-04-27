@@ -11,13 +11,14 @@ import com.example.application.ui.views.AbstractServicesView;
 import com.example.application.ui.views.settings.SettingsView;
 import com.example.application.ui.views.settings.admin.user.events.DeleteEvent;
 import com.example.application.ui.views.settings.admin.user.events.SaveEvent;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.KeyModifier;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.security.access.annotation.Secured;
@@ -28,7 +29,6 @@ import java.util.stream.Collectors;
 @Secured("ADMIN")
 @Route(value = "users", layout = SettingsView.class)
 public class UsersView extends AbstractServicesView<UserEntity, UserEntity> {
-    private final TextField usernameFilter = new TextField();
     private final UserForm userForm;
     private final Button addButton = new Button("Přidat uživatele");
     private final UserService userService;
@@ -36,7 +36,7 @@ public class UsersView extends AbstractServicesView<UserEntity, UserEntity> {
     public UsersView(UserService userService, AuthorityService authorityService, FirmService firmService) {
         super(new Grid<>(), userService);
         this.userService = userService;
-        this.userForm = new UserForm(firmService);
+        this.userForm = new UserForm(firmService.loadAll());
         userForm.setAllAuthorities(authorityService.loadAll());
         setSizeFull();
         configureGrid();
@@ -77,7 +77,7 @@ public class UsersView extends AbstractServicesView<UserEntity, UserEntity> {
     @Override
     protected HorizontalLayout getToolBar() {
         addButton.setIcon(VaadinIcon.PLUS.create());
-
+        addButton.addClickShortcut(Key.KEY_A, KeyModifier.ALT);
         addButton.addClickListener(e -> {
             getItems().asSingleSelect().clear();
             userForm.setEntity(new UserEntity());
@@ -119,11 +119,6 @@ public class UsersView extends AbstractServicesView<UserEntity, UserEntity> {
         closeEditor();
         NotificationService.success();
     }
-
-    public TextField getUsernameFilter() {
-        return usernameFilter;
-    }
-
 
     public UserForm getUserForm() {
         return userForm;

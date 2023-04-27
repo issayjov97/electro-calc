@@ -1,26 +1,18 @@
 package com.example.application.persistence.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 
 @Entity
 @Table(name = "otp")
 public class OneTimePasswordEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long       id;
-    private String     value;
+    private Long id;
+    private String value;
     @Column(name = "created_at")
-    private Date       createdAt;
-    @OneToOne(fetch = FetchType.EAGER)
+    private Date createdAt;
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
     @JoinColumn(name = "id")
     private UserEntity userEntity;
 

@@ -8,29 +8,33 @@ import com.example.application.ui.views.settings.admin.user.UserForm;
 import com.example.application.ui.views.settings.admin.user.UsersView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.provider.Query;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.stream.Collectors;
+
+import static com.example.application.Values.TESTER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
+@Transactional
 class UsersViewTest {
 
-    private final UI               ui = new UI();
+    private final UI ui = new UI();
     @Autowired
-    private       UserService      userService;
+    private UserService userService;
     @Autowired
-    private       AuthorityService authorityService;
+    private AuthorityService authorityService;
     @Autowired
-    private       FirmService      firmService;
+    private FirmService firmService;
 
     private UsersView usersView;
 
@@ -41,8 +45,8 @@ class UsersViewTest {
     }
 
     @Test
-    @WithMockUser(username = "tester123")
-    public void formShownWhenUserSelected() {
+    @WithMockUser(username = TESTER)
+    void formShownWhenUserSelected() {
         Grid<UserEntity> grid = usersView.getItems();
         UserEntity userEntity = getFirstUser(grid);
 
@@ -55,8 +59,8 @@ class UsersViewTest {
     }
 
     @Test
-    @WithMockUser(username = "tester123")
-    public void formShownWhenAddUserClicked() {
+    @WithMockUser(username = TESTER)
+    void formShownWhenAddUserClicked() {
         UserForm form = usersView.getUserForm();
 
         assertFalse(usersView.getUserForm().getDialog().isOpened());
@@ -70,22 +74,10 @@ class UsersViewTest {
         assertEquals("", form.getFirstName().getValue());
         assertEquals("", form.getLastName().getValue());
         assertEquals(true, form.getEnabled().getValue());
-        assertEquals(0, form.getAuthorities().getSelectedItems().size());
-    }
-
-    @Test
-    @WithMockUser(username = "tester123")
-    public void filteredGridShownWhenFilterClicked() {
-        Grid<UserEntity> grid = usersView.getItems();
-
-        usersView.getUsernameFilter().setValue("tester123");
-
-        assertEquals(3, (int) grid.getDataProvider().fetch(new Query<>()).count());
-
-        assertEquals(1, (int) grid.getDataProvider().fetch(new Query<>()).count());
+        assertEquals(0, form.getAuthoritiesSelect().getSelectedItems().size());
     }
 
     private UserEntity getFirstUser(Grid<UserEntity> grid) {
-        return ((ListDataProvider<UserEntity>) grid.getDataProvider()).getItems().iterator().next();
+        return grid.getDataProvider().fetch(new Query<>()).findFirst().orElse(null);
     }
 }
